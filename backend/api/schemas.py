@@ -101,6 +101,10 @@ class RepositorySynopsisResponse(RepositorySynopsis):
     session_id: str
     model_name: str
     created_at: datetime
+    evidence_status: Literal["COMPLETE"] = "COMPLETE"
+    ai_status: Literal["RUNNING", "COMPLETE", "FAILED"] = "COMPLETE"
+    evidence_preview: dict = Field(default_factory=dict)
+    timings: dict[str, float] = Field(default_factory=dict)
 
 
 class IssueAnalysisResponse(IssueAnalysis):

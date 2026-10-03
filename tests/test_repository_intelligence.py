@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.ai.schemas import RepositorySynopsis
+from backend.ai.schemas import EvidenceReference, RepositorySynopsis
 from backend.api.endpoints import repository
 from backend.db import db
 from backend.main import app
@@ -40,6 +40,24 @@ class InvalidSynopsisClient(FakeSynopsisClient):
     def analyze(self, evidence):
         synopsis = super().analyze(evidence)
         synopsis.evidence[0].source_id = "missing"
+        return synopsis
+
+
+class FormattedSynopsisClient(FakeSynopsisClient):
+    def analyze(self, evidence):
+        synopsis = super().analyze(evidence)
+        synopsis.evidence[0].source_id = ' "COMMIT:ABC123" '
+        return synopsis
+
+
+class MultipleReferenceSynopsisClient(FakeSynopsisClient):
+    def analyze(self, evidence):
+        synopsis = super().analyze(evidence)
+        synopsis.evidence.append(EvidenceReference(
+            source_type="commit",
+            source_id="abc123",
+            claim="The same supplied commit is also relevant.",
+        ))
         return synopsis
 
 
@@ -98,4 +116,33 @@ def test_synopsis_rejects_unknown_evidence_reference(overview_repo, monkeypatch)
     monkeypatch.setattr(repository, "RepositorySynopsisClient", lambda: InvalidSynopsisClient())
     with TestClient(app) as client:
         response = client.post("/api/v1/repos/session1/synopsis")
-    assert response.status_code == 502
+    assert response.status_code == 200
+    assert response.json()["ai_status"] == "FAILED"
+
+
+def test_synopsis_accepts_harmless_reference_formatting(overview_repo, monkeypatch):
+    monkeypatch.setattr(repository, "RepositorySynopsisClient", lambda: FormattedSynopsisClient())
+    with TestClient(app) as client:
+        response = client.post("/api/v1/repos/session1/synopsis")
+    assert response.status_code == 200, response.text
+
+
+def test_synopsis_accepts_multiple_valid_references(overview_repo, monkeypatch):
+    monkeypatch.setattr(repository, "RepositorySynopsisClient", lambda: MultipleReferenceSynopsisClient())
+    with TestClient(app) as client:
+        response = client.post("/api/v1/repos/session1/synopsis")
+    assert response.status_code == 200, response.text
+
+
+def test_synopsis_rejects_empty_evidence_reference(overview_repo, monkeypatch):
+    class EmptyReferenceClient(FakeSynopsisClient):
+        def analyze(self, evidence):
+            synopsis = super().analyze(evidence)
+            synopsis.evidence[0].source_id = "   "
+            return synopsis
+
+    monkeypatch.setattr(repository, "RepositorySynopsisClient", lambda: EmptyReferenceClient())
+    with TestClient(app) as client:
+        response = client.post("/api/v1/repos/session1/synopsis")
+    assert response.status_code == 200
+    assert response.json()["ai_status"] == "FAILED"

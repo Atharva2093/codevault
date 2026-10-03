@@ -1,5 +1,11 @@
 # Env / secrets
 .env
+!.env.example
+
+# Workspace settings shared by the project
+.vscode/
+!.vscode/
+!.vscode/settings.json
 .env.*
 .env.local
 
@@ -20,6 +26,8 @@ htmlcov/
 # IDE
 .idea/
 .vscode/
+!.vscode/
+!.vscode/settings.json
 
 # OS
 .DS_Store

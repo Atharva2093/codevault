@@ -51,6 +51,10 @@ button span { margin-left: 10px; color: var(--mint); font-size: 19px; }
 .synopsis-result { max-width: 900px; padding: 22px; background: #f8fbf9; border-left: 4px solid var(--coral); }
 .synopsis-purpose { font: 700 22px "Space Grotesk", sans-serif; }
 .synopsis-result p { margin: 10px 0 0; color: var(--muted); line-height: 1.6; }
+.synopsis-actions { display: flex; align-items: center; gap: 10px; }
+.synopsis-evidence { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; padding: 13px 16px; background: #f8fbf9; border-left: 4px solid var(--mint-strong); font-size: 12px; }
+.synopsis-evidence strong { flex-basis: 100%; color: var(--navy); }
+.synopsis-evidence span { color: var(--muted); }
 .synopsis-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 22px; }
 .synopsis-columns div { display: grid; gap: 5px; padding-top: 11px; border-top: 1px solid var(--line); }
 .synopsis-columns span, .fact-row span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }

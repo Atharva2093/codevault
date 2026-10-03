@@ -1,100 +1,13 @@
-# CausalCode
+# Documentation overview
 
-This repository implements a deterministic, evidence-first backend for analyzing public software repositories.
+Start with the repository-root [README](../README.md). It describes the current product journey, evidence-first architecture, Gemma integration, setup, API workflow, and limitations.
 
-## What it does
+The rest of this directory provides detail:
 
-The current app can:
-
-- validate a public repository URL
-- clone a repository and inspect its Git history
-- extract commit metadata and changed files
-- classify commit types
-- analyze dependency manifest diffs
-- inspect current dependency usage at HEAD
-- store evidence in SQLite and expose it through a FastAPI API
-- interpret focused evidence with Gemma 4 and store validated decision analyses
-- serve a responsive repository-memory demo at `/`
-
-This project is intentionally focused on repository evidence generation. It is not a finished AI decision platform and does not claim full production web-product capabilities.
-
-## Current status
-
-The active codebase includes completed work for:
-
-- repository ingestion
-- Git-based evidence extraction
-- manifest diff analysis
-- dependency usage analysis
-- session storage and API exposure
-
-Future work includes:
-
-- evidence-backed decision timelines
-- richer reporting and exports
-
-## Stack
-
-- Python 3.10+
-- FastAPI
-- Pydantic
-- SQLite + aiosqlite
-- Git CLI
-- pytest
-
-## Repo layout
-
-```text
-backend/
-  ai/
-  analysis/
-  api/
-  config.py
-  db.py
-  main.py
-
-data/
-
-tests/
-
-docs/
-```
-
-## Quick start
-
-```bash
-git clone https://github.com/<your-user>/CausalCode.git
-cd CausalCode
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-pytest -q
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-## Verification
-
-The repository validation baseline is:
-
-```bash
-pytest tests/test_dependency_usage.py tests/test_phase3_decisions.py -q
-```
-
-This currently passes in the project environment.
-
-## Docs
-
-See the docs folder for the repo-accurate project documentation:
-
-- [GETTING_STARTED.md](./GETTING_STARTED.md)
-- [ARCHITECTURE.md](./ARCHITECTURE.md)
-- [API.md](./API.md)
-- [ROADMAP.md](./ROADMAP.md)
-- [PRD.md](./PRD.md)
-- [SETUP.md](./SETUP.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
-- [PHASE_WISE_PLAN.md](./PHASE_WISE_PLAN.md)
-
-The local demo flow is: analyze a public repository, select a dependency, inspect its timeline and current usage, then request an evidence-constrained Gemma decision analysis.
+- [Getting Started](GETTING_STARTED.md) for installation and the first local run.
+- [Architecture](ARCHITECTURE.md) for deterministic extraction, bounded evidence, and AI enrichment.
+- [API Reference](API.md) for request and response shapes.
+- [Setup and Troubleshooting](SETUP.md) for environment variables and operational constraints.
+- [Project Structure](PROJECT_STRUCTURE.md) for module ownership.
+- [Roadmap](ROADMAP.md) for future work.
+- [Contributing](CONTRIBUTING.md) for development expectations.

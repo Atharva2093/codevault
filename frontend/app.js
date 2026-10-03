@@ -1,5 +1,57 @@
 const state = { sessionId: null, repo: null, decisions: [], dependencies: [], issues: [], currentIssueNumber: null };
 const $ = (id) => document.getElementById(id);
+const asArray = (value) => Array.isArray(value) ? value : [];
+const asObject = (value) => value && typeof value === "object" ? value : {};
+
+function normalizeOverview(value) {
+  const overview = asObject(value);
+  return {
+    ...overview,
+    repository: asObject(overview.repository),
+    timeline: asObject(overview.timeline),
+    activity: asObject(overview.activity),
+    technologies: asArray(overview.technologies),
+    structure: asArray(overview.structure),
+    contributors: asArray(overview.contributors),
+    history: asArray(overview.history).map((entry) => ({
+      ...asObject(entry),
+      dependency_events: asArray(entry?.dependency_events),
+    })),
+  };
+}
+
+function normalizeIssue(value) {
+  const issue = asObject(value);
+  return { ...issue, labels: asArray(issue.labels) };
+}
+
+function normalizeAnalysis(value) {
+  const result = asObject(value);
+  return {
+    ...result,
+    facts: asArray(result.facts),
+    reasoning: asArray(result.reasoning),
+    relevant_technologies: asArray(result.relevant_technologies),
+    required_skills: asArray(result.required_skills),
+    suggested_first_steps: asArray(result.suggested_first_steps),
+    relevant_history: asArray(result.relevant_history),
+    relevant_skills: asArray(result.relevant_skills),
+    evidence: asArray(result.evidence),
+  };
+}
+
+function assertFrontendNormalization() {
+  const overview = normalizeOverview({});
+  const analysis = normalizeAnalysis({});
+  if (![overview.technologies, overview.structure, overview.contributors, overview.history].every(Array.isArray)) {
+    throw new Error("Frontend overview normalization failed");
+  }
+  if (![normalizeIssue({}).labels, analysis.facts, analysis.reasoning, analysis.evidence].every(Array.isArray)) {
+    throw new Error("Frontend response normalization failed");
+  }
+}
+
+assertFrontendNormalization();
 
 async function api(path, options = {}) {
   const response = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
@@ -46,16 +98,17 @@ async function renderWorkspace() {
   $("repo-name").textContent = state.repo.repo_name || "Repository";
   $("repo-url-display").textContent = state.repo.repo_url;
   $("repo-url-display").href = state.repo.repo_url;
-  const overview = await api(`/api/v1/repos/${state.sessionId}/overview`);
+  const overview = normalizeOverview(await api(`/api/v1/repos/${state.sessionId}/overview`));
   $("repo-owner").textContent = overview.repository.owner ? `by ${overview.repository.owner}` : "Owner unavailable from URL";
   $("repo-age").textContent = overview.timeline.age_days ?? "—";
   $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
   $("commit-count").textContent = state.repo.analyzed_commits;
-  $("event-count").textContent = state.repo.dependency_events.length;
+  const dependencyEvents = asArray(state.repo.dependency_events);
+  $("event-count").textContent = dependencyEvents.length;
   if ($("event-count-label")) {
     $("event-count-label").textContent = `dependency changes in last ${state.repo.analyzed_commits} commits`;
   }
-  state.dependencies = state.repo.dependency_evidence || [];
+  state.dependencies = asArray(state.repo.dependency_evidence);
   if ($("declared-count")) {
     $("declared-count").textContent = state.dependencies.length;
   }
@@ -65,25 +118,36 @@ async function renderWorkspace() {
   renderStructure(overview.structure);
   renderContributors(overview.contributors);
   renderTimeline(overview.history);
+  renderSynopsisEvidence(overview);
   await loadIssues();
   populateDependencySelect();
   await loadStoredSynopsis();
 }
 
+function renderSynopsisEvidence(overview) {
+  const timeline = overview.timeline ?? {};
+  const activity = overview.activity ?? {};
+  const technologies = asArray(overview.technologies).map((item) => item.name).filter(Boolean);
+  $("synopsis-evidence").innerHTML = `<strong>Evidence used</strong><span>Repository: ${escapeHtml(overview.repository?.owner || "unknown")}/${escapeHtml(overview.repository?.name || "unknown")}</span><span>Technologies: ${escapeHtml(technologies.join(", ") || "none detected")}</span><span>Commits examined: ${activity.analyzed_commit_count ?? 0}</span><span>Contributors: ${activity.unique_contributor_count ?? 0}</span><span>First commit: ${escapeHtml(formatDate(timeline.first_commit))}</span><span>Latest commit: ${escapeHtml(formatDate(timeline.latest_commit))}</span>`;
+}
+
 async function loadIssues() {
   setError("issues-error");
+  $("issue-count").textContent = "Loading";
+  $("issues-list").innerHTML = '<p class="empty-state">Fetching open issues...</p>';
   try {
-    const issues = await api(`/api/v1/repos/${state.sessionId}/issues`);
+    const issues = asArray(await api(`/api/v1/repos/${state.sessionId}/issues`)).map(normalizeIssue);
     state.issues = issues;
     $("issue-count").textContent = `${issues.length} open`;
     const list = $("issues-list");
-    if (!issues.length) { list.innerHTML = '<p class="empty-state">No open issues were found.</p>'; return; }
+    if (!issues.length) { list.innerHTML = '<p class="empty-state">No open issues found</p>'; return; }
     list.innerHTML = issues.map((issue) => `<article class="issue-card"><div class="issue-card-head"><strong>#${issue.number}</strong><span>${escapeHtml(issue.author)}</span></div><h4>${escapeHtml(issue.title)}</h4><p>${escapeHtml((issue.body || "No description provided.").slice(0, 220))}</p><div class="issue-labels">${issue.labels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}</div><div class="issue-actions"><a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noreferrer">View on GitHub</a><button class="issue-analyze-button" data-issue="${issue.number}">Analyze Issue <span>→</span></button></div></article>`).join("");
     list.querySelectorAll(".issue-analyze-button").forEach((button) => button.addEventListener("click", () => loadIssueAnalysis(button.dataset.issue)));
   } catch (error) {
+    state.issues = [];
     $("issue-count").textContent = "Unavailable";
-    setError("issues-error", error.message);
-    $("issues-list").innerHTML = '<p class="empty-state">Open issues could not be loaded.</p>';
+    setError("issues-error", "Unable to load issues");
+    $("issues-list").innerHTML = '<p class="empty-state">Unable to load issues</p>';
   }
 }
 
@@ -105,6 +169,7 @@ async function loadIssueAnalysis(issueNumber) {
 }
 
 function renderIssueAnalysis(result) {
+  result = normalizeAnalysis(result);
   $("issue-analysis-title").textContent = `Issue #${result.issue_number}`;
   $("issue-complexity").textContent = `${result.estimated_complexity} complexity`;
   $("start-here").classList.remove("hidden");
@@ -139,7 +204,8 @@ async function loadGuidance() {
 }
 
 function renderGuidance(result) {
-  $("guidance-recommendation").textContent = escapeHtml(result.recommendation.replaceAll("_", " "));
+  result = normalizeAnalysis(result);
+  $("guidance-recommendation").textContent = escapeHtml((result.recommendation || "Unavailable").replaceAll("_", " "));
   $("guidance-result").className = "archaeology-result";
   const facts = result.facts.map((fact) => `<div class="archaeology-item fact"><strong>FACT</strong><span>${escapeHtml(fact)}</span></div>`).join("");
   const reasoning = result.reasoning.map((item) => `<div class="archaeology-item inference"><strong>INFERENCE</strong><span>${escapeHtml(item)}</span></div>`).join("");
@@ -155,15 +221,20 @@ function renderGuidance(result) {
 
 function renderDependencies() {
   const list = $("dependency-list");
-  if (!state.dependencies.length) { list.innerHTML = '<p class="empty-state">No supported dependency declarations were found.</p>'; return; }
+  state.dependencies = asArray(state.dependencies);
+  if (!state.dependencies.length) { list.innerHTML = '<p class="empty-state">Select a dependency to inspect its evidence and decision history.</p>'; return; }
   list.innerHTML = state.dependencies.map((item) => `<div class="dependency-item" data-name="${escapeHtml(item.dependency_name)}"><div><div class="dep-name">${escapeHtml(item.dependency_name)}</div><div class="dep-meta">${escapeHtml(item.ecosystem)} · ${escapeHtml(item.declared_version || "version not declared")}</div></div><div class="dep-usage">${item.current_usage_count} file${item.current_usage_count === 1 ? "" : "s"}</div></div>`).join("");
   list.querySelectorAll(".dependency-item").forEach((item) => item.addEventListener("click", () => { $("dependency-select").value = item.dataset.name; selectDependency(); }));
 }
 
 function renderTimeline(entries) {
+  entries = asArray(entries);
   const timeline = $("timeline");
-  if (!entries.length) { timeline.innerHTML = '<p class="empty-state">No commits were returned.</p>'; return; }
-  timeline.innerHTML = entries.map((entry) => `<div class="timeline-entry"><div class="timeline-date">${formatDate(entry.timestamp)} · ${escapeHtml(entry.author || "Unknown author")}</div><div class="timeline-message">${escapeHtml(entry.message)}</div>${entry.dependency_events.map((event) => `<span class="timeline-event">${escapeHtml(event.action)} · ${escapeHtml(event.dep_name)}</span>`).join(" ")}<button class="archaeology-button" data-commit="${escapeHtml(entry.sha)}">Why this change?</button></div>`).join("");
+  if (!entries.length) { timeline.innerHTML = '<p class="empty-state">Not enough repository history for archaeology</p>'; return; }
+  timeline.innerHTML = entries.map((entry) => {
+    const dependencyEvents = asArray(entry.dependency_events);
+    return `<div class="timeline-entry"><div class="timeline-date">${formatDate(entry.timestamp)} · ${escapeHtml(entry.author || "Unknown author")}</div><div class="timeline-message">${escapeHtml(entry.message)}</div>${dependencyEvents.map((event) => `<span class="timeline-event">${escapeHtml(event.action)} · ${escapeHtml(event.dep_name)}</span>`).join(" ")}<button class="archaeology-button" data-commit="${escapeHtml(entry.sha)}">Why this change?</button></div>`;
+  }).join("");
   timeline.querySelectorAll(".archaeology-button").forEach((button) => button.addEventListener("click", () => loadArchaeology(button.dataset.commit)));
 }
 
@@ -182,6 +253,7 @@ async function loadArchaeology(commitSha) {
 }
 
 function renderArchaeology(result, commitSha) {
+  result = normalizeAnalysis(result);
   $("archaeology-title").textContent = `Why did ${commitSha.slice(0, 10)} change?`;
   $("archaeology-confidence").textContent = `${result.confidence} confidence`;
   $("archaeology-result").className = "archaeology-result";
@@ -192,18 +264,22 @@ function renderArchaeology(result, commitSha) {
 }
 
 function renderTechnology(items) {
+  items = asArray(items);
   $("technology-list").innerHTML = items.length ? items.map((item) => `<div class="fact-row"><strong>${escapeHtml(item.name)}</strong><span>${item.file_count} files</span></div>`).join("") : '<p class="empty-state">No recognized source files.</p>';
 }
 
 function renderStructure(items) {
+  items = asArray(items);
   $("structure-list").innerHTML = items.length ? items.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("") : '<p class="empty-state">No top-level structure found.</p>';
 }
 
 function renderContributors(items) {
+  items = asArray(items);
   $("contributor-list").innerHTML = items.length ? items.map((item) => `<div class="contributor-row"><span class="avatar">${escapeHtml((item.name || "?").slice(0, 1).toUpperCase())}</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.email)}</small></div></div>`).join("") : '<p class="empty-state">No contributors found in analyzed history.</p>';
 }
 
 function populateDependencySelect() {
+  state.dependencies = asArray(state.dependencies);
   $("dependency-select").innerHTML = '<option value="">Choose a dependency</option>' + state.dependencies.map((item) => `<option value="${escapeHtml(item.dependency_name)}">${escapeHtml(item.dependency_name)}</option>`).join("");
   $("dependency-select").addEventListener("change", selectDependency);
   $("event-select").addEventListener("change", updateActionState);
@@ -212,7 +288,8 @@ function populateDependencySelect() {
 function selectDependency() {
   const name = $("dependency-select").value;
   const item = state.dependencies.find((candidate) => candidate.dependency_name === name);
-  $("event-select").innerHTML = '<option value="">All historical events</option>' + (item?.historical_dependency_events || []).map((event) => `<option value="${escapeHtml(event.commit_hash)}">${escapeHtml(event.commit_hash.slice(0, 10))} · ${escapeHtml(event.action)}</option>`).join("");
+  const historicalEvents = asArray(item?.historical_dependency_events);
+  $("event-select").innerHTML = '<option value="">All historical events</option>' + historicalEvents.map((event) => `<option value="${escapeHtml(event.commit_hash)}">${escapeHtml((event.commit_hash || "").slice(0, 10))} · ${escapeHtml(event.action)}</option>`).join("");
   $("selected-title").textContent = name ? `Why was ${name} introduced?` : "Select a dependency";
   updateActionState();
   if (name) loadInsights(name); else { $("decay-result").textContent = "Select a dependency to load current validity."; $("counterfactual-result").textContent = "Select a dependency to inspect likely impact."; }
@@ -237,6 +314,7 @@ $("analyze-decision").addEventListener("click", async () => {
 });
 
 function renderDecision(result) {
+  result = normalizeAnalysis(result);
   $("confidence").textContent = `${result.confidence} confidence`;
   $("decision-result").classList.remove("empty-state");
   $("decision-result").innerHTML = `<div class="result-title">${escapeHtml(result.decision)}</div><div class="result-reason">${escapeHtml(result.reason)}</div><div class="evidence-list">${result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("")}</div><div class="insight-row"><span>Current validity</span><strong>${escapeHtml(result.current_validity)}</strong></div><div class="insight-row"><span>Uncertainty</span><strong>${escapeHtml(result.uncertainty)}</strong></div>`;
@@ -245,8 +323,14 @@ function renderDecision(result) {
 async function loadInsights(name) {
   try {
     const [decay, counterfactual] = await Promise.all([api(`/api/v1/repos/${state.sessionId}/dependencies/${encodeURIComponent(name)}/decay`), api(`/api/v1/repos/${state.sessionId}/dependencies/${encodeURIComponent(name)}/counterfactual`)]);
-    $("decay-result").innerHTML = `<div class="insight-row"><span>Historical signal</span><strong>${escapeHtml(decay.original_decision)}</strong></div><div class="insight-row"><span>Current validity</span><strong>${escapeHtml(decay.validity)}</strong></div><div class="insight-row"><span>Current files</span><strong>${decay.current_evidence.current_files.length}</strong></div><p class="empty-state">${escapeHtml(decay.uncertainty)}</p>`;
-    $("counterfactual-result").innerHTML = `<div class="insight-row"><span>Likely impact</span><strong>${escapeHtml(counterfactual.likely_impact)}</strong></div><div class="insight-row"><span>Importing files</span><strong>${counterfactual.current_files.length}</strong></div><div class="insight-row"><span>Historical events</span><strong>${counterfactual.historical_events.length}</strong></div><p class="empty-state">${escapeHtml(counterfactual.uncertainty)}</p>`;
+    const decayData = asObject(decay);
+    const counterfactualData = asObject(counterfactual);
+    const currentEvidence = asObject(decayData.current_evidence);
+    const currentFiles = asArray(currentEvidence.current_files);
+    const importingFiles = asArray(counterfactualData.current_files);
+    const historicalEvents = asArray(counterfactualData.historical_events);
+    $("decay-result").innerHTML = `<div class="insight-row"><span>Historical signal</span><strong>${escapeHtml(decayData.original_decision)}</strong></div><div class="insight-row"><span>Current validity</span><strong>${escapeHtml(decayData.validity)}</strong></div><div class="insight-row"><span>Current files</span><strong>${currentFiles.length}</strong></div><p class="empty-state">${escapeHtml(decayData.uncertainty)}</p>`;
+    $("counterfactual-result").innerHTML = `<div class="insight-row"><span>Likely impact</span><strong>${escapeHtml(counterfactualData.likely_impact)}</strong></div><div class="insight-row"><span>Importing files</span><strong>${importingFiles.length}</strong></div><div class="insight-row"><span>Historical events</span><strong>${historicalEvents.length}</strong></div><p class="empty-state">${escapeHtml(counterfactualData.uncertainty)}</p>`;
   } catch (error) { $("decay-result").textContent = error.message; $("counterfactual-result").textContent = error.message; }
 }
 
@@ -256,15 +340,16 @@ async function loadStoredSynopsis() {
 }
 
 function renderSynopsis(result) {
+  $("synopsis-status").textContent = result.ai_status === "FAILED" ? "AI reasoning failed" : "AI reasoning complete";
   $("synopsis-result").classList.remove("empty-state");
   $("synopsis-result").innerHTML = `<div class="synopsis-purpose">${escapeHtml(result.purpose)}</div><p>${escapeHtml(result.what_it_does)}</p><div class="synopsis-columns"><div><span>Evolution</span><strong>${escapeHtml(result.project_evolution_summary)}</strong></div><div><span>Current state</span><strong>${escapeHtml(result.current_state_summary)}</strong></div><div><span>Confidence</span><strong>${escapeHtml(result.confidence)}</strong></div><div><span>Uncertainty</span><strong>${escapeHtml(result.uncertainty)}</strong></div></div>`;
 }
 
 $("generate-synopsis").addEventListener("click", async () => {
-  const button = $("generate-synopsis"); button.disabled = true; button.innerHTML = "Reading evidence...";
+  const button = $("generate-synopsis"); button.disabled = true; button.innerHTML = "Gemma reasoning..."; $("synopsis-status").textContent = "AI reasoning running";
   try { renderSynopsis(await api(`/api/v1/repos/${state.sessionId}/synopsis`, { method: "POST" })); }
-  catch (error) { setError("form-error", error.message); }
-  finally { button.disabled = false; button.innerHTML = 'Generate synopsis <span>→</span>'; }
+  catch (error) { $("synopsis-status").textContent = error.message.includes("timed out") ? "AI reasoning timed out" : "AI reasoning failed"; setError("form-error", error.message); }
+  finally { button.disabled = false; button.innerHTML = 'Ask Gemma <span>→</span>'; }
 });
 
 checkApi();
