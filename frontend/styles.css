@@ -98,6 +98,12 @@ h3 { font-size: 23px; }
 .issue-analysis-tags { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
 .issue-analysis-tags > div > strong { display: block; margin-bottom: 8px; font-size: 12px; }
 .issue-analysis-tags > div > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.issue-analysis-actions { display: flex; align-items: center; gap: 10px; }
+.issue-analysis-actions button { min-height: 34px; padding: 0 11px; font-size: 11px; }
+.guidance-panel { margin-top: 18px; }
+.guidance-result ol { margin: 8px 0 0; padding-left: 22px; color: var(--muted); line-height: 1.8; }
+.guidance-history { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.github-issue-link { display: inline-block; margin-top: 18px; color: var(--navy); font-size: 12px; font-weight: 700; }
 .archaeology-result { padding: 22px; background: #f8fbf9; border-left: 4px solid var(--coral); }
 .archaeology-reason { margin-top: 18px; line-height: 1.5; }
 .archaeology-reason p { margin: 6px 0 0; color: var(--muted); }

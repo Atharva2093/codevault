@@ -1,4 +1,4 @@
-const state = { sessionId: null, repo: null, decisions: [], dependencies: [] };
+const state = { sessionId: null, repo: null, decisions: [], dependencies: [], issues: [], currentIssueNumber: null };
 const $ = (id) => document.getElementById(id);
 
 async function api(path, options = {}) {
@@ -74,6 +74,7 @@ async function loadIssues() {
   setError("issues-error");
   try {
     const issues = await api(`/api/v1/repos/${state.sessionId}/issues`);
+    state.issues = issues;
     $("issue-count").textContent = `${issues.length} open`;
     const list = $("issues-list");
     if (!issues.length) { list.innerHTML = '<p class="empty-state">No open issues were found.</p>'; return; }
@@ -87,6 +88,7 @@ async function loadIssues() {
 }
 
 async function loadIssueAnalysis(issueNumber) {
+  state.currentIssueNumber = Number(issueNumber);
   const panel = $("issue-analysis-panel");
   panel.classList.remove("hidden");
   setError("issue-analysis-error");
@@ -105,13 +107,50 @@ async function loadIssueAnalysis(issueNumber) {
 function renderIssueAnalysis(result) {
   $("issue-analysis-title").textContent = `Issue #${result.issue_number}`;
   $("issue-complexity").textContent = `${result.estimated_complexity} complexity`;
+  $("start-here").classList.remove("hidden");
   $("issue-analysis-result").className = "archaeology-result";
   const facts = result.facts.map((fact) => `<div class="archaeology-item fact"><strong>FACT</strong><span>${escapeHtml(fact)}</span></div>`).join("");
   const reasoning = result.reasoning.map((item) => `<div class="archaeology-item inference"><strong>INFERENCE</strong><span>${escapeHtml(item)}</span></div>`).join("");
   const technologies = result.relevant_technologies.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
   const skills = result.required_skills.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
   const evidence = result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("");
-  $("issue-analysis-result").innerHTML = `<div class="result-title">${escapeHtml(result.summary)}</div><div class="archaeology-reason"><strong>Problem</strong><p>${escapeHtml(result.problem)}</p></div><div class="archaeology-reason"><strong>Likely affected area</strong><p>${escapeHtml(result.likely_affected_area)}</p></div><div class="issue-analysis-tags"><div><strong>Technologies</strong><div>${technologies || '<span class="empty-state">Insufficient evidence</span>'}</div></div><div><strong>Required skills</strong><div>${skills || '<span class="empty-state">Insufficient evidence</span>'}</div></div></div><div class="archaeology-items">${facts}${reasoning}</div><div class="archaeology-reason uncertainty"><strong>UNCERTAINTY</strong><p>${escapeHtml(result.uncertainty)}</p></div><div class="evidence-list">${evidence}</div>`;
+  const issue = state.issues.find((item) => item.number === result.issue_number);
+  const githubLink = issue ? `<a class="github-issue-link" href="${escapeHtml(issue.html_url)}" target="_blank" rel="noreferrer">Open Issue on GitHub</a>` : "";
+  $("issue-analysis-result").innerHTML = `<div class="result-title">${escapeHtml(result.summary)}</div><div class="archaeology-reason"><strong>Problem</strong><p>${escapeHtml(result.problem)}</p></div><div class="archaeology-reason"><strong>Likely affected area</strong><p>${escapeHtml(result.likely_affected_area)}</p></div><div class="issue-analysis-tags"><div><strong>Technologies</strong><div>${technologies || '<span class="empty-state">Insufficient evidence</span>'}</div></div><div><strong>Required skills</strong><div>${skills || '<span class="empty-state">Insufficient evidence</span>'}</div></div></div><div class="archaeology-items">${facts}${reasoning}</div><div class="archaeology-reason uncertainty"><strong>UNCERTAINTY</strong><p>${escapeHtml(result.uncertainty)}</p></div><div class="evidence-list">${evidence}</div>${githubLink}`;
+}
+
+$("start-here").addEventListener("click", loadGuidance);
+
+async function loadGuidance() {
+  if (!state.currentIssueNumber) return;
+  const panel = $("guidance-panel");
+  panel.classList.remove("hidden");
+  setError("guidance-error");
+  $("guidance-recommendation").textContent = "Reading analysis...";
+  $("guidance-result").className = "archaeology-result empty-state";
+  $("guidance-result").textContent = "Gemma is turning the validated issue analysis into practical first steps.";
+  try {
+    const result = await api(`/api/v1/repos/${state.sessionId}/issues/${state.currentIssueNumber}/guidance`);
+    renderGuidance(result);
+  } catch (error) {
+    setError("guidance-error", error.message);
+    $("guidance-recommendation").textContent = "Unavailable";
+  }
+}
+
+function renderGuidance(result) {
+  $("guidance-recommendation").textContent = escapeHtml(result.recommendation.replaceAll("_", " "));
+  $("guidance-result").className = "archaeology-result";
+  const facts = result.facts.map((fact) => `<div class="archaeology-item fact"><strong>FACT</strong><span>${escapeHtml(fact)}</span></div>`).join("");
+  const reasoning = result.reasoning.map((item) => `<div class="archaeology-item inference"><strong>INFERENCE</strong><span>${escapeHtml(item)}</span></div>`).join("");
+  const steps = result.suggested_first_steps.map((step, index) => `<li>${index + 1}. ${escapeHtml(step)}</li>`).join("");
+  const history = result.relevant_history.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
+  const skills = result.relevant_skills.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
+  const technologies = result.relevant_technologies.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
+  const evidence = result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("");
+  const issue = state.issues.find((item) => item.number === result.issue_number);
+  const githubLink = issue ? `<a class="github-issue-link" href="${escapeHtml(issue.html_url)}" target="_blank" rel="noreferrer">Open Issue on GitHub</a>` : "";
+  $("guidance-result").innerHTML = `<div class="result-title">${escapeHtml(result.why_this_issue)}</div><div class="issue-analysis-tags"><div><strong>Relevant skills</strong><div>${skills || '<span class="empty-state">Insufficient evidence</span>'}</div></div><div><strong>Relevant technologies</strong><div>${technologies || '<span class="empty-state">Insufficient evidence</span>'}</div></div></div><div class="archaeology-reason"><strong>Affected area</strong><p>${escapeHtml(result.affected_area)}</p></div><div class="archaeology-reason"><strong>Before you start</strong><ol>${steps || '<li>Insufficient evidence</li>'}</ol></div><div class="archaeology-reason"><strong>Relevant history</strong><div class="guidance-history">${history || '<span class="empty-state">No matching repository history found</span>'}</div></div><div class="archaeology-items">${facts}${reasoning}</div><div class="archaeology-reason uncertainty"><strong>UNCERTAINTY</strong><p>${escapeHtml(result.uncertainty)}</p></div><div class="evidence-list">${evidence}</div>${githubLink}`;
 }
 
 function renderDependencies() {

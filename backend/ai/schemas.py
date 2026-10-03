@@ -55,3 +55,21 @@ class IssueAnalysis(BaseModel):
     reasoning: list[str] = Field(default_factory=list)
     uncertainty: str = Field(min_length=1)
     evidence: list[EvidenceReference] = Field(default_factory=list)
+
+
+class ContributionGuidance(BaseModel):
+    issue_number: int = Field(ge=1)
+    recommendation: Literal["good_starting_point", "needs_project_context", "complex_change", "insufficient_evidence"]
+    why_this_issue: str = Field(min_length=1)
+    prerequisites: list[str] = Field(default_factory=list)
+    relevant_skills: list[str] = Field(default_factory=list)
+    relevant_technologies: list[str] = Field(default_factory=list)
+    affected_area: str = Field(min_length=1)
+    estimated_complexity: Literal["low", "medium", "high", "unknown"]
+    suggested_first_steps: list[str] = Field(default_factory=list)
+    relevant_history: list[str] = Field(default_factory=list)
+    facts: list[str] = Field(default_factory=list)
+    reasoning: list[str] = Field(default_factory=list)
+    confidence: Literal["high", "medium", "low"]
+    uncertainty: str = Field(min_length=1)
+    evidence: list[EvidenceReference] = Field(default_factory=list)

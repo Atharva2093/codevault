@@ -86,6 +86,16 @@ CREATE TABLE IF NOT EXISTS repository_synopses (
     created_at TEXT NOT NULL,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
+
+CREATE TABLE IF NOT EXISTS issue_analyses (
+    session_id TEXT NOT NULL,
+    issue_number INTEGER NOT NULL,
+    model_name TEXT NOT NULL,
+    analysis_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (session_id, issue_number),
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
 """
 
 
@@ -251,6 +261,28 @@ class SQLiteEngine:
         with self.connection() as conn:
             return conn.execute(
                 "SELECT * FROM repository_synopses WHERE session_id = ?", (session_id,)
+            ).fetchone()
+
+    def store_issue_analysis(self, session_id: str, issue_number: int,
+                             model_name: str, analysis_json: str) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """INSERT INTO issue_analyses
+                   (session_id, issue_number, model_name, analysis_json, created_at)
+                   VALUES (?, ?, ?, ?, ?)
+                   ON CONFLICT(session_id, issue_number) DO UPDATE SET
+                   model_name = excluded.model_name, analysis_json = excluded.analysis_json,
+                   created_at = excluded.created_at""",
+                (session_id, issue_number, model_name, analysis_json,
+                 datetime.now(timezone.utc).isoformat()),
+            )
+
+    def get_issue_analysis(self, session_id: str, issue_number: int) -> Optional[sqlite3.Row]:
+        with self.connection() as conn:
+            return conn.execute(
+                """SELECT * FROM issue_analyses
+                   WHERE session_id = ? AND issue_number = ?""",
+                (session_id, issue_number),
             ).fetchone()
 
 

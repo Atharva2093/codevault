@@ -79,9 +79,15 @@
       </section>
 
       <section class="panel issue-analysis-panel hidden" id="issue-analysis-panel">
-        <div class="panel-head"><div><p class="eyebrow">Issue intelligence</p><h3 id="issue-analysis-title">Analyze an issue</h3></div><span class="confidence" id="issue-complexity">Awaiting analysis</span></div>
+        <div class="panel-head"><div><p class="eyebrow">Issue intelligence</p><h3 id="issue-analysis-title">Analyze an issue</h3></div><div class="issue-analysis-actions"><span class="confidence" id="issue-complexity">Awaiting analysis</span><button id="start-here" class="hidden">Start Here <span>→</span></button></div></div>
         <p class="form-error" id="issue-analysis-error" role="alert"></p>
         <div id="issue-analysis-result" class="archaeology-result empty-state">Choose an issue to inspect its scope and evidence.</div>
+      </section>
+
+      <section class="panel guidance-panel hidden" id="guidance-panel">
+        <div class="panel-head"><div><p class="eyebrow">Contribution guidance</p><h3>Start Here</h3></div><span class="confidence" id="guidance-recommendation">Awaiting guidance</span></div>
+        <p class="form-error" id="guidance-error" role="alert"></p>
+        <div id="guidance-result" class="archaeology-result empty-state">Use Start Here to see what to inspect before contributing.</div>
       </section>
 
       <div class="grid insight-grid">

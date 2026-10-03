@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
-from backend.ai.schemas import DecisionAnalysis, IssueAnalysis, RepositorySynopsis
+from backend.ai.schemas import ContributionGuidance, DecisionAnalysis, IssueAnalysis, RepositorySynopsis
 
 
 # ---- Request / Input ----
@@ -104,6 +104,10 @@ class RepositorySynopsisResponse(RepositorySynopsis):
 
 
 class IssueAnalysisResponse(IssueAnalysis):
+    model_name: str
+
+
+class ContributionGuidanceResponse(ContributionGuidance):
     model_name: str
 
 
