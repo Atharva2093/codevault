@@ -30,13 +30,14 @@
     <section class="workspace hidden" id="workspace">
       <div class="repo-heading">
         <div><p class="eyebrow">Repository overview</p><h2 id="repo-name">Repository</h2><a id="repo-url-display" target="_blank" rel="noreferrer"></a></div>
+        <div class="repo-stat"><strong id="declared-count">0</strong><span>declared dependencies</span></div>
+        <div class="repo-stat"><strong id="event-count">0</strong><span id="event-count-label">dependency changes in last 0 commits</span></div>
         <div class="repo-stat"><strong id="commit-count">0</strong><span>commits examined</span></div>
-        <div class="repo-stat"><strong id="event-count">0</strong><span>dependency events</span></div>
       </div>
 
       <div class="grid">
         <section class="panel dependencies-panel">
-          <div class="panel-head"><div><p class="eyebrow">Dependency history</p><h3>What changed?</h3></div><span class="count-pill" id="dependency-count">0</span></div>
+          <div class="panel-head"><div><p class="eyebrow">Dependency history</p><h3>What changed?</h3></div><span class="count-pill" id="dependency-count">0 declared</span></div>
           <div id="dependency-list" class="dependency-list"></div>
         </section>
         <section class="panel timeline-panel">
