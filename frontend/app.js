@@ -8,7 +8,20 @@ async function api(path, options = {}) {
   return body;
 }
 
-function setError(id, message = "") { $(id).textContent = message; }
+function setError(id, message = "") {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove("muted-note");
+}
+
+function setNote(id, message = "") {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add("muted-note");
+}
+
 function setLoading(value) { $("loading").classList.toggle("hidden", !value); }
 function formatDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Unknown date"; }
 function escapeHtml(value) { const div = document.createElement("div"); div.textContent = value ?? ""; return div.innerHTML; }
@@ -35,8 +48,14 @@ async function renderWorkspace() {
   $("repo-url-display").href = state.repo.repo_url;
   $("commit-count").textContent = state.repo.analyzed_commits;
   $("event-count").textContent = state.repo.dependency_events.length;
+  if ($("event-count-label")) {
+    $("event-count-label").textContent = `dependency changes in last ${state.repo.analyzed_commits} commits`;
+  }
   state.dependencies = state.repo.dependency_evidence || [];
-  $("dependency-count").textContent = state.dependencies.length;
+  if ($("declared-count")) {
+    $("declared-count").textContent = state.dependencies.length;
+  }
+  $("dependency-count").textContent = `${state.dependencies.length} declared`;
   renderDependencies();
   renderTimeline(await api(`/api/v1/repos/${state.sessionId}/timeline`));
   populateDependencySelect();
@@ -78,7 +97,13 @@ $("analyze-decision").addEventListener("click", async () => {
     const params = { dependency_name: dependency }; if ($("event-select").value) params.commit_hash = $("event-select").value;
     const result = await api(`/api/v1/repos/${state.sessionId}/decisions/analyze`, { method: "POST", body: JSON.stringify(params) });
     renderDecision(result);
-  } catch (error) { setError("decision-error", error.message); }
+  } catch (error) {
+    if (error.message && error.message.includes("Gemma is not configured")) {
+      setNote("decision-error", "Gemma isn't set up on this server yet. Add the Gemma API key or Ollama settings in the backend .env file to enable AI explanations. Evidence below is still available.");
+    } else {
+      setError("decision-error", error.message);
+    }
+  }
   finally { $("analyze-decision").disabled = false; $("analyze-decision").innerHTML = 'Ask Gemma <span>→</span>'; }
 });
 

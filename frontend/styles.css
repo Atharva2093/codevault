@@ -36,6 +36,7 @@ button:hover:not(:disabled) { background: #244c64; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 button span { margin-left: 10px; color: var(--mint); font-size: 19px; }
 .form-error { min-height: 20px; margin: 10px 0 0; color: #b44735; font-size: 13px; }
+.form-error.muted-note { color: var(--muted); font-weight: 400; }
 .hidden { display: none !important; }
 .repo-heading { display: flex; align-items: end; gap: 48px; padding: 24px 0 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .repo-heading h2 { font-size: 32px; }
