@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
+from backend.ai.schemas import DecisionAnalysis
+
 
 # ---- Request / Input ----
 
@@ -85,6 +87,14 @@ class DependencyEvidenceSummary(BaseModel):
 class DecisionAnalysisRequest(BaseModel):
     dependency_name: str = Field(min_length=1)
     commit_hash: Optional[str] = None
+
+
+class StoredDecisionAnalysis(DecisionAnalysis):
+    id: int
+    session_id: str
+    target: str
+    model_name: str
+    created_at: datetime
 
 
 # Forward refs

@@ -13,6 +13,8 @@ The current app can:
 - analyze dependency manifest diffs
 - inspect current dependency usage at HEAD
 - store evidence in SQLite and expose it through a FastAPI API
+- interpret focused evidence with Gemma 4 and store validated decision analyses
+- serve a responsive repository-memory demo at `/`
 
 This project is intentionally focused on repository evidence generation. It is not a finished AI decision platform and does not claim full production web-product capabilities.
 
@@ -26,12 +28,10 @@ The active codebase includes completed work for:
 - dependency usage analysis
 - session storage and API exposure
 
-Planned work includes:
+Future work includes:
 
-- Gemma-based reasoning
-- structured decision extraction
 - evidence-backed decision timelines
-- dashboard or UI work
+- richer reporting and exports
 
 ## Stack
 
@@ -96,3 +96,5 @@ See the docs folder for the repo-accurate project documentation:
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
 - [PHASE_WISE_PLAN.md](./PHASE_WISE_PLAN.md)
+
+The local demo flow is: analyze a public repository, select a dependency, inspect its timeline and current usage, then request an evidence-constrained Gemma decision analysis.

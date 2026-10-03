@@ -42,11 +42,15 @@ def build_evidence_package(
     usage = analyze_dependency_usage(repo_root)
     selected = next((item for item in usage if item.dependency_name.lower() == dependency_name.lower()), None)
     matching_events = [event for event in dependency_events if event.dep_name.lower() == dependency_name.lower()]
-    event_hashes = {event.commit_hash for event in matching_events}
     if selected_commit_hash:
-        event_hashes = {selected_commit_hash}
+        matching_events = [event for event in matching_events if event.commit_hash == selected_commit_hash]
+    event_hashes = {event.commit_hash for event in matching_events}
 
-    relevant_commits = [commit for commit in commits if commit.hash in event_hashes or commit.change_type == "dependency"]
+    relevant_commits = [
+        commit for commit in commits
+        if commit.hash in event_hashes
+        or (selected_commit_hash is None and commit.change_type == "dependency")
+    ]
     relevant_hashes = {commit.hash for commit in relevant_commits}
     relevant_changes = [change for change in file_changes if change.commit_hash in relevant_hashes]
     manifest_diffs = _manifest_diffs(repo_root, matching_events, commit_lookup or {}, selected_commit_hash)

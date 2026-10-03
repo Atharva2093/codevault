@@ -145,7 +145,7 @@ Response:
 
 ### POST /api/v1/repos/{session_id}/decisions/analyze
 
-This route exists as a scaffold for the future decision-analysis phase. It packages evidence and validates that AI output follows known evidence references.
+This route packages focused deterministic evidence, sends it to Gemma 4, validates the structured response, and stores the resulting analysis.
 
 Request body:
 
@@ -176,4 +176,24 @@ Response shape:
 }
 ```
 
-This is not a fully shipped product feature; it is a structured foundation for future inference work.
+The configured product model is `gemma-4-26b-a4b-it`. The API requires `GEMINI_API_KEY` at runtime and never exposes it in responses.
+
+### GET /api/v1/repos/{session_id}/decisions
+
+Returns stored decision analyses for a repository session.
+
+### GET /api/v1/repos/{session_id}/timeline
+
+Returns commit history with dependency events grouped by commit.
+
+### GET /api/v1/repos/{session_id}/dependencies/ghosts
+
+Returns declared dependencies with no detected current source imports. This is heuristic evidence, not an automatic deletion recommendation.
+
+### GET /api/v1/repos/{session_id}/dependencies/{dependency_name}/decay
+
+Compares historical dependency events with current usage and reports a confidence-aware validity assessment.
+
+### GET /api/v1/repos/{session_id}/dependencies/{dependency_name}/counterfactual
+
+Reports current importing files, historical events, and a cautious removal-impact assessment based on deterministic evidence.

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CausalCode | Repository memory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Causal<span>Code</span></a>
+    <span class="status-dot" id="api-status">API checking</span>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <p class="eyebrow">Repository memory layer</p>
+      <h1>Understand the decisions<br><em>inside</em> your code.</h1>
+      <p class="lede">Trace a dependency from its first appearance to its current footprint, with every conclusion anchored to repository evidence.</p>
+      <form id="analyze-form" class="analyze-form">
+        <input id="repo-url" type="url" placeholder="https://github.com/owner/repository" required>
+        <label class="commit-limit">Commits <input id="max-commits" type="number" min="1" max="200" value="100"></label>
+        <button type="submit">Analyze repository <span>→</span></button>
+      </form>
+      <p class="form-error" id="form-error" role="alert"></p>
+    </section>
+
+    <section class="workspace hidden" id="workspace">
+      <div class="repo-heading">
+        <div><p class="eyebrow">Repository overview</p><h2 id="repo-name">Repository</h2><a id="repo-url-display" target="_blank" rel="noreferrer"></a></div>
+        <div class="repo-stat"><strong id="commit-count">0</strong><span>commits examined</span></div>
+        <div class="repo-stat"><strong id="event-count">0</strong><span>dependency events</span></div>
+      </div>
+
+      <div class="grid">
+        <section class="panel dependencies-panel">
+          <div class="panel-head"><div><p class="eyebrow">Dependency history</p><h3>What changed?</h3></div><span class="count-pill" id="dependency-count">0</span></div>
+          <div id="dependency-list" class="dependency-list"></div>
+        </section>
+        <section class="panel timeline-panel">
+          <div class="panel-head"><div><p class="eyebrow">Decision timeline</p><h3>How it evolved</h3></div></div>
+          <div id="timeline" class="timeline"></div>
+        </section>
+      </div>
+
+      <section class="panel decision-panel">
+        <div class="panel-head"><div><p class="eyebrow">Evidence review</p><h3 id="selected-title">Select a dependency</h3></div><span class="confidence" id="confidence">Awaiting analysis</span></div>
+        <div class="decision-controls"><select id="dependency-select"><option value="">Choose a dependency</option></select><select id="event-select"><option value="">All historical events</option></select><button id="analyze-decision" disabled>Ask Gemma <span>→</span></button></div>
+        <p class="form-error" id="decision-error" role="alert"></p>
+        <div id="decision-result" class="decision-result empty-state">Choose a dependency to inspect its evidence and decision history.</div>
+      </section>
+
+      <div class="grid insight-grid">
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Current footprint</p><h3>Usage & decay</h3></div></div><div id="decay-result" class="insight-content empty-state">Select a dependency to load current validity.</div></section>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Removal lens</p><h3>Counterfactual impact</h3></div></div><div id="counterfactual-result" class="insight-content empty-state">Select a dependency to inspect likely impact.</div></section>
+      </div>
+    </section>
+    <div class="loading hidden" id="loading"><span></span><span></span><span></span><p>Mining repository evidence...</p></div>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

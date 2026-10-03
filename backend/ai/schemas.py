@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class EvidenceReference(BaseModel):
-    source_type: Literal["commit", "dependency_event", "file_change", "current_usage"]
+    source_type: Literal["dependency", "commit", "dependency_event", "file_change", "current_usage"]
     source_id: str
     claim: str = Field(min_length=1)
 

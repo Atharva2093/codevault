@@ -17,29 +17,31 @@
 - current usage detection against source files
 - evidence summaries in the API
 
-## Next
+## Completed
 
 ### Phase 3 — Gemma 4 Decision Extraction
 
-Planned items:
+- focused deterministic evidence package
+- Gemma 4 structured JSON response
+- Pydantic validation and evidence-reference checks
+- SQLite persistence and retrieval API
+- mocked provider/error/validation tests
 
-- build structured evidence package
-- feed it to a Gemma-backed pipeline
-- validate reasoning against allowed evidence references
-- store the resulting decisions and uncertainty scores
+### Phase 4 — Evidence Workspace
 
-This phase is not implemented yet.
+- responsive repository input and analysis flow
+- repository overview and dependency history
+- commit timeline
+- decision analysis panel
+- current usage, decay, ghost dependency, and counterfactual views
+- FastAPI-served static demo UI
 
 ## Future
 
-- Decision Timeline
-- Decision Decay
-- Ghost Dependency Detection
-- Counterfactual Analysis
 - Evidence-backed Repository Q&A
 - Decision Knowledge Export
-- UI / dashboard
+- richer exports and reporting
 
 ## Project status
 
-The project is an early-stage hackathon MVP. It is intentionally focused on deterministic evidence generation before AI-powered decision inference.
+The project is an early-stage hackathon MVP. The current demo combines deterministic repository evidence with optional Gemma interpretation; static analysis remains the source of truth.

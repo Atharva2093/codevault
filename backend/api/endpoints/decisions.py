@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, status
 from backend.ai.evidence import build_evidence_package
 from backend.ai.gemma import GemmaClient, GemmaError
 from backend.ai.schemas import DecisionAnalysis
-from backend.api.schemas import DecisionAnalysisRequest, DependencyEventSummary
+from backend.api.schemas import DecisionAnalysisRequest, DependencyEventSummary, StoredDecisionAnalysis
 from backend.config import GEMMA_MODEL
 from backend.db import db
 
@@ -73,6 +73,33 @@ def analyze_decision(session_id: str, payload: DecisionAnalysisRequest) -> Decis
     return analysis
 
 
+@router.get(
+    "/{session_id}/decisions",
+    response_model=list[StoredDecisionAnalysis],
+    status_code=status.HTTP_200_OK,
+)
+def list_decisions(session_id: str) -> list[StoredDecisionAnalysis]:
+    if not db.get_session(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+    return [
+        StoredDecisionAnalysis(
+            id=row["id"],
+            session_id=row["session_id"],
+            target=row["target"],
+            model_name=row["model_name"],
+            decision=row["decision"],
+            reason=row["reason"],
+            evidence=json.loads(row["evidence_json"]),
+            affected_files=json.loads(row["affected_files_json"]),
+            current_validity=row["current_validity"],
+            confidence=row["confidence"],
+            uncertainty=row["uncertainty"],
+            created_at=datetime.fromisoformat(row["created_at"]),
+        )
+        for row in db.list_decision_analyses(session_id)
+    ]
+
+
 def _validate_references(analysis: DecisionAnalysis, package) -> None:
     allowed = set(package.allowed_references)
     for reference in analysis.evidence:
@@ -90,6 +117,7 @@ def _validate_references(analysis: DecisionAnalysis, package) -> None:
 
 
 def _event_model(row) -> DependencyEventSummary:
+    keys = row.keys()
     return DependencyEventSummary(
         dep_name=row["dep_name"],
         kind=row["kind"],
@@ -97,8 +125,8 @@ def _event_model(row) -> DependencyEventSummary:
         action=row["action"],
         version=row["version"],
         commit_hash=row["commit_hash"],
-        old_version=None,
-        new_version=None,
+        old_version=row["old_version"] if "old_version" in keys else None,
+        new_version=row["new_version"] if "new_version" in keys else None,
     )
 
 
