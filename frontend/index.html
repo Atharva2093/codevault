@@ -12,54 +12,200 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/">Causal<span>Code</span></a>
-    <span class="status-dot" id="api-status">API checking</span>
+    <div class="topbar-actions">
+      <span class="status-dot" id="api-status">API checking</span>
+      <button id="theme-toggle" class="theme-toggle mono" aria-label="Toggle theme">Dark mode</button>
+    </div>
   </header>
   <main class="shell">
-    <section class="intro">
-      <p class="eyebrow">Repository memory layer</p>
-      <h1>Understand the decisions<br><em>inside</em> your code.</h1>
-      <p class="lede">Trace a dependency from its first appearance to its current footprint, with every conclusion anchored to repository evidence.</p>
-      <form id="analyze-form" class="analyze-form">
-        <input id="repo-url" type="url" placeholder="https://github.com/owner/repository" required>
-        <label class="commit-limit">Commits <input id="max-commits" type="number" min="1" max="200" value="100"></label>
-        <button type="submit">Analyze repository <span>→</span></button>
-      </form>
-      <p class="form-error" id="form-error" role="alert"></p>
-    </section>
+    <nav class="tab-bar" id="tab-bar" aria-label="Main navigation">
+      <a href="#overview" class="tab-item active" data-tab="overview">Overview</a>
+      <a href="#timeline" class="tab-item" data-tab="timeline">Timeline</a>
+      <a href="#dependencies" class="tab-item" data-tab="dependencies">Dependencies</a>
+      <a href="#about" class="tab-item" data-tab="about">About</a>
+      <a href="#report" class="tab-item" data-tab="report">Report</a>
+    </nav>
 
-    <section class="workspace hidden" id="workspace">
-      <div class="repo-heading">
-        <div><p class="eyebrow">Repository overview</p><h2 id="repo-name">Repository</h2><a id="repo-url-display" target="_blank" rel="noreferrer"></a></div>
-        <div class="repo-stat"><strong id="declared-count">0</strong><span>declared dependencies</span></div>
-        <div class="repo-stat"><strong id="event-count">0</strong><span id="event-count-label">dependency changes in last 0 commits</span></div>
-        <div class="repo-stat"><strong id="commit-count">0</strong><span>commits examined</span></div>
-      </div>
-
-      <div class="grid">
-        <section class="panel dependencies-panel">
-          <div class="panel-head"><div><p class="eyebrow">Dependency history</p><h3>What changed?</h3></div><span class="count-pill" id="dependency-count">0 declared</span></div>
-          <div id="dependency-list" class="dependency-list"></div>
-        </section>
-        <section class="panel timeline-panel">
-          <div class="panel-head"><div><p class="eyebrow">Decision timeline</p><h3>How it evolved</h3></div></div>
-          <div id="timeline" class="timeline"></div>
-        </section>
-      </div>
-
-      <section class="panel decision-panel">
-        <div class="panel-head"><div><p class="eyebrow">Evidence review</p><h3 id="selected-title">Select a dependency</h3></div><span class="confidence" id="confidence">Awaiting analysis</span></div>
-        <div class="decision-controls"><select id="dependency-select"><option value="">Choose a dependency</option></select><select id="event-select"><option value="">All historical events</option></select><button id="analyze-decision" disabled>Ask Gemma <span>→</span></button></div>
-        <p class="form-error" id="decision-error" role="alert"></p>
-        <div id="decision-result" class="decision-result empty-state">Choose a dependency to inspect its evidence and decision history.</div>
+    <!-- Overview Tab View -->
+    <div id="view-overview" class="tab-view">
+      <section class="intro hero-texture">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <p class="eyebrow">Repository memory layer</p>
+            <h1>Understand the decisions<br><em>inside</em> your code.</h1>
+            <p class="lede">Trace a dependency from its first appearance to its current footprint, with every conclusion anchored to repository evidence.</p>
+            <form id="analyze-form" class="analyze-form">
+              <input id="repo-url" type="url" placeholder="https://github.com/owner/repository" required>
+              <label class="commit-limit">Commits <input id="max-commits" type="number" min="1" max="200" value="100"></label>
+              <button type="submit" id="analyze-submit-btn">Analyze repository <span>→</span></button>
+            </form>
+            <div class="example-chips">
+              <span class="chips-label mono">Try an example:</span>
+              <button type="button" class="chip-btn mono" data-url="https://github.com/psf/requests">psf/requests</button>
+              <button type="button" class="chip-btn mono" data-url="https://github.com/pallets/flask">pallets/flask</button>
+              <button type="button" class="chip-btn mono" data-url="https://github.com/expressjs/express">expressjs/express</button>
+            </div>
+            <p class="form-hint" id="form-hint">Paste a public GitHub repository URL to begin.</p>
+            <p class="form-error" id="form-error" role="alert"></p>
+          </div>
+          <div class="hero-graphic" aria-hidden="true">
+            <svg viewBox="0 0 240 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="120" y1="20" x2="120" y2="260" stroke="var(--navy)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.3"/>
+              <line x1="120" y1="50" x2="120" y2="230" stroke="var(--navy)" stroke-width="1.5"/>
+              <circle cx="120" cy="50" r="4" fill="var(--paper)" stroke="var(--navy)" stroke-width="1.5"/>
+              <circle cx="120" cy="90" r="4" fill="var(--navy)"/>
+              <circle cx="120" cy="130" r="4" fill="var(--paper)" stroke="var(--coral)" stroke-width="1.5"/>
+              <circle cx="120" cy="170" r="4" fill="var(--coral)"/>
+              <circle cx="120" cy="210" r="4" fill="var(--navy)"/>
+              <path d="M 120 90 C 165 90, 180 110, 180 130 C 180 150, 165 170, 120 170" fill="none" stroke="var(--coral)" stroke-width="1.5" stroke-dasharray="4 2"/>
+              <circle cx="180" cy="130" r="4" fill="var(--coral)"/>
+              <path d="M 120 130 C 75 130, 60 150, 60 170 C 60 190, 75 210, 120 210" fill="none" stroke="var(--navy)" stroke-width="1.5" opacity="0.4"/>
+              <circle cx="60" cy="170" r="3" fill="var(--paper)" stroke="var(--navy)" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
       </section>
 
-      <div class="grid insight-grid">
-        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Current footprint</p><h3>Usage & decay</h3></div></div><div id="decay-result" class="insight-content empty-state">Select a dependency to load current validity.</div></section>
-        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Removal lens</p><h3>Counterfactual impact</h3></div></div><div id="counterfactual-result" class="insight-content empty-state">Select a dependency to inspect likely impact.</div></section>
-      </div>
-    </section>
-    <div class="loading hidden" id="loading"><span></span><span></span><span></span><p>Mining repository evidence...</p></div>
+      <section class="workspace hidden" id="workspace">
+        <div class="editorial-header">
+          <span class="section-num mono">01</span>
+          <h2 id="repo-name">Repository Overview</h2>
+          <span class="header-rule"></span>
+        </div>
+        <a id="repo-url-display" class="repo-link mono" target="_blank" rel="noreferrer"></a>
+
+        <div class="repo-heading">
+          <div class="repo-stat"><strong id="declared-count" class="tabular-nums">0</strong><span class="mono">declared dependencies</span></div>
+          <div class="repo-stat"><strong id="event-count" class="tabular-nums">0</strong><span id="event-count-label" class="mono">dependency changes in last 0 commits</span></div>
+          <div class="repo-stat"><strong id="commit-count" class="tabular-nums">0</strong><span class="mono">commits examined</span></div>
+        </div>
+
+        <!-- Sparkline and Commit Type breakdown -->
+        <div id="overview-metrics-box" class="overview-metrics-box hidden">
+          <div id="sparkline-box" class="sparkline-box"></div>
+          <div id="commit-types-box" class="commit-types-box"></div>
+        </div>
+
+        <div class="grid">
+          <section class="panel dependencies-panel">
+            <div class="panel-head"><div><p class="eyebrow">Dependency history</p><h3>What changed?</h3></div><span class="count-pill tabular-nums" id="dependency-count">0 declared</span></div>
+            <div id="dependency-list" class="dependency-list"></div>
+          </section>
+          <section class="panel timeline-panel">
+            <div class="panel-head"><div><p class="eyebrow">Decision timeline</p><h3>How it evolved</h3></div></div>
+            <div id="timeline" class="timeline"></div>
+          </section>
+        </div>
+
+        <section class="panel decision-panel">
+          <div class="panel-head"><div><p class="eyebrow">Evidence review</p><h3 id="selected-title">Select a dependency</h3></div><span class="confidence" id="confidence">Awaiting analysis</span></div>
+          <div class="decision-controls"><select id="dependency-select"><option value="">Choose a dependency</option></select><select id="event-select"><option value="">All historical events</option></select><button id="analyze-decision" disabled>Ask Gemma <span>→</span></button></div>
+          <p class="form-error" id="decision-error" role="alert"></p>
+          <div id="decision-result" class="decision-result empty-state">Choose a dependency to inspect its evidence and decision history.</div>
+        </section>
+
+        <div class="grid insight-grid">
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">Current footprint</p><h3>Usage & decay</h3></div></div><div id="decay-result" class="insight-content empty-state">Select a dependency to load current validity.</div></section>
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">Removal lens</p><h3>Counterfactual impact</h3></div></div><div id="counterfactual-result" class="insight-content empty-state">Select a dependency to inspect likely impact.</div></section>
+        </div>
+      </section>
+    </div>
+
+    <!-- Timeline Tab View -->
+    <div id="view-timeline" class="tab-view hidden">
+      <section class="panel">
+        <div class="editorial-header">
+          <span class="section-num mono">02</span>
+          <h2>Repository Timeline</h2>
+          <span class="header-rule"></span>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="timeline-search" placeholder="Search message, author, or commit hash (Press '/' to focus)...">
+          <select id="timeline-author-filter">
+            <option value="">All authors</option>
+          </select>
+          <label class="checkbox-label">
+            <input type="checkbox" id="timeline-dep-filter">
+            <span>Only dependency-related commits</span>
+          </label>
+        </div>
+        <div id="timeline-view-content" class="timeline-view-content">
+          <p class="empty-state">Analyze a repository from the Overview tab to see this.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Dependencies Tab View -->
+    <div id="view-dependencies" class="tab-view hidden">
+      <section class="panel">
+        <div class="editorial-header">
+          <span class="section-num mono">03</span>
+          <h2>Declared Dependencies</h2>
+          <span class="header-rule"></span>
+        </div>
+        <!-- Dependency Lifespan Chart -->
+        <div id="lifespan-chart-container" class="lifespan-chart-container hidden"></div>
+
+        <div class="filter-bar">
+          <input type="text" id="dep-search" placeholder="Search dependency name, ecosystem, or version (Press '/' to focus)...">
+          <select id="dep-status-filter">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="unused">Unused</option>
+            <option value="removed">Removed</option>
+          </select>
+        </div>
+        <div id="dep-view-content">
+          <p class="empty-state">Analyze a repository from the Overview tab to see this.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- About Tab View -->
+    <div id="view-about" class="tab-view hidden">
+      <section class="panel about-panel">
+        <div class="editorial-header">
+          <span class="section-num mono">04</span>
+          <h2>How it works</h2>
+          <span class="header-rule"></span>
+        </div>
+        <div class="about-content">
+          <p>CausalCode constructs a deterministic memory layer for software repositories by extracting structural evidence directly from Git commit logs and dependency manifest files (such as <code>requirements.txt</code>, <code>pyproject.toml</code>, and <code>package.json</code>).</p>
+          <p>AI models (such as Gemma) only explain collected evidence and must cite specific commits or file changes. All AI assertions are strictly bounded to empirical repository data.</p>
+          <p>Static import analysis detects file-level module references across the codebase at HEAD. Because static analysis cannot execute code, it cannot prove dynamic runtime execution or configuration-only dependency usage.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Report Tab View -->
+    <div id="view-report" class="tab-view hidden">
+      <section class="panel report-panel">
+        <div class="panel-head">
+          <div class="editorial-header flex-1">
+            <span class="section-num mono">05</span>
+            <h2>Repository Report</h2>
+            <span class="header-rule"></span>
+          </div>
+          <div class="report-actions">
+            <button id="download-json-btn" class="secondary-btn">Download JSON</button>
+            <button id="download-md-btn">Download Markdown</button>
+          </div>
+        </div>
+        <div id="report-content" class="report-content">
+          <p class="empty-state">Analyze a repository from the Overview tab to see this.</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="loading-state hidden" id="loading">
+      <p class="loading-text" id="loading-text">Analyzing repository...</p>
+    </div>
   </main>
+
+  <footer class="footer">
+    <p class="mono">CausalCode · Deterministic repository memory & dependency evidence layer</p>
+  </footer>
+
   <script src="/static/app.js"></script>
 </body>
 </html>
