@@ -46,6 +46,10 @@ async function renderWorkspace() {
   $("repo-name").textContent = state.repo.repo_name || "Repository";
   $("repo-url-display").textContent = state.repo.repo_url;
   $("repo-url-display").href = state.repo.repo_url;
+  const overview = await api(`/api/v1/repos/${state.sessionId}/overview`);
+  $("repo-owner").textContent = overview.repository.owner ? `by ${overview.repository.owner}` : "Owner unavailable from URL";
+  $("repo-age").textContent = overview.timeline.age_days ?? "—";
+  $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
   $("commit-count").textContent = state.repo.analyzed_commits;
   $("event-count").textContent = state.repo.dependency_events.length;
   if ($("event-count-label")) {
@@ -57,8 +61,12 @@ async function renderWorkspace() {
   }
   $("dependency-count").textContent = `${state.dependencies.length} declared`;
   renderDependencies();
-  renderTimeline(await api(`/api/v1/repos/${state.sessionId}/timeline`));
+  renderTechnology(overview.technologies);
+  renderStructure(overview.structure);
+  renderContributors(overview.contributors);
+  renderTimeline(overview.history);
   populateDependencySelect();
+  await loadStoredSynopsis();
 }
 
 function renderDependencies() {
@@ -72,6 +80,18 @@ function renderTimeline(entries) {
   const timeline = $("timeline");
   if (!entries.length) { timeline.innerHTML = '<p class="empty-state">No commits were returned.</p>'; return; }
   timeline.innerHTML = entries.map((entry) => `<div class="timeline-entry"><div class="timeline-date">${formatDate(entry.timestamp)} · ${escapeHtml(entry.author || "Unknown author")}</div><div class="timeline-message">${escapeHtml(entry.message)}</div>${entry.dependency_events.map((event) => `<span class="timeline-event">${escapeHtml(event.action)} · ${escapeHtml(event.dep_name)}</span>`).join(" ")}</div>`).join("");
+}
+
+function renderTechnology(items) {
+  $("technology-list").innerHTML = items.length ? items.map((item) => `<div class="fact-row"><strong>${escapeHtml(item.name)}</strong><span>${item.file_count} files</span></div>`).join("") : '<p class="empty-state">No recognized source files.</p>';
+}
+
+function renderStructure(items) {
+  $("structure-list").innerHTML = items.length ? items.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("") : '<p class="empty-state">No top-level structure found.</p>';
+}
+
+function renderContributors(items) {
+  $("contributor-list").innerHTML = items.length ? items.map((item) => `<div class="contributor-row"><span class="avatar">${escapeHtml((item.name || "?").slice(0, 1).toUpperCase())}</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.email)}</small></div></div>`).join("") : '<p class="empty-state">No contributors found in analyzed history.</p>';
 }
 
 function populateDependencySelect() {
@@ -120,5 +140,22 @@ async function loadInsights(name) {
     $("counterfactual-result").innerHTML = `<div class="insight-row"><span>Likely impact</span><strong>${escapeHtml(counterfactual.likely_impact)}</strong></div><div class="insight-row"><span>Importing files</span><strong>${counterfactual.current_files.length}</strong></div><div class="insight-row"><span>Historical events</span><strong>${counterfactual.historical_events.length}</strong></div><p class="empty-state">${escapeHtml(counterfactual.uncertainty)}</p>`;
   } catch (error) { $("decay-result").textContent = error.message; $("counterfactual-result").textContent = error.message; }
 }
+
+async function loadStoredSynopsis() {
+  try { renderSynopsis(await api(`/api/v1/repos/${state.sessionId}/synopsis`)); }
+  catch { $("synopsis-result").textContent = "No synopsis generated for this repository yet."; }
+}
+
+function renderSynopsis(result) {
+  $("synopsis-result").classList.remove("empty-state");
+  $("synopsis-result").innerHTML = `<div class="synopsis-purpose">${escapeHtml(result.purpose)}</div><p>${escapeHtml(result.what_it_does)}</p><div class="synopsis-columns"><div><span>Evolution</span><strong>${escapeHtml(result.project_evolution_summary)}</strong></div><div><span>Current state</span><strong>${escapeHtml(result.current_state_summary)}</strong></div><div><span>Confidence</span><strong>${escapeHtml(result.confidence)}</strong></div><div><span>Uncertainty</span><strong>${escapeHtml(result.uncertainty)}</strong></div></div>`;
+}
+
+$("generate-synopsis").addEventListener("click", async () => {
+  const button = $("generate-synopsis"); button.disabled = true; button.innerHTML = "Reading evidence...";
+  try { renderSynopsis(await api(`/api/v1/repos/${state.sessionId}/synopsis`, { method: "POST" })); }
+  catch (error) { setError("form-error", error.message); }
+  finally { button.disabled = false; button.innerHTML = 'Generate synopsis <span>→</span>'; }
+});
 
 checkApi();

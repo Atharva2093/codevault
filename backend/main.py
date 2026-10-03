@@ -16,6 +16,7 @@ from backend.db import db as _db
 from backend.api.endpoints import repos
 from backend.api.endpoints import decisions
 from backend.api.endpoints import insights
+from backend.api.endpoints import repository
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ app.add_middleware(
 app.include_router(repos.router)
 app.include_router(decisions.router)
 app.include_router(insights.router)
+app.include_router(repository.router)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")

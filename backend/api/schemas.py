@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
-from backend.ai.schemas import DecisionAnalysis
+from backend.ai.schemas import DecisionAnalysis, RepositorySynopsis
 
 
 # ---- Request / Input ----
@@ -93,6 +93,12 @@ class StoredDecisionAnalysis(DecisionAnalysis):
     id: int
     session_id: str
     target: str
+    model_name: str
+    created_at: datetime
+
+
+class RepositorySynopsisResponse(RepositorySynopsis):
+    session_id: str
     model_name: str
     created_at: datetime
 

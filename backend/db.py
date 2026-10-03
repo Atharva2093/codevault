@@ -78,6 +78,14 @@ CREATE TABLE IF NOT EXISTS decision_analyses (
     created_at TEXT NOT NULL,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
+
+CREATE TABLE IF NOT EXISTS repository_synopses (
+    session_id TEXT PRIMARY KEY,
+    model_name TEXT NOT NULL,
+    synopsis_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
 """
 
 
@@ -228,6 +236,22 @@ class SQLiteEngine:
                    ORDER BY created_at DESC""",
                 (session_id,),
             ).fetchall()
+
+    def store_repository_synopsis(self, session_id: str, model_name: str, synopsis_json: str) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """INSERT INTO repository_synopses (session_id, model_name, synopsis_json, created_at)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT(session_id) DO UPDATE SET model_name = excluded.model_name,
+                   synopsis_json = excluded.synopsis_json, created_at = excluded.created_at""",
+                (session_id, model_name, synopsis_json, datetime.now(timezone.utc).isoformat()),
+            )
+
+    def get_repository_synopsis(self, session_id: str) -> Optional[sqlite3.Row]:
+        with self.connection() as conn:
+            return conn.execute(
+                "SELECT * FROM repository_synopses WHERE session_id = ?", (session_id,)
+            ).fetchone()
 
 
 # Module-level singleton shared by main.py and the API layer.

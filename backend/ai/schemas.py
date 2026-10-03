@@ -19,3 +19,15 @@ class DecisionAnalysis(BaseModel):
     current_validity: str = Field(min_length=1)
     confidence: Literal["high", "medium", "low"]
     uncertainty: str = Field(min_length=1)
+
+
+class RepositorySynopsis(BaseModel):
+    purpose: str = Field(min_length=1)
+    what_it_does: str = Field(min_length=1)
+    primary_technologies: list[str] = Field(default_factory=list)
+    major_components: list[str] = Field(default_factory=list)
+    project_evolution_summary: str = Field(min_length=1)
+    current_state_summary: str = Field(min_length=1)
+    confidence: Literal["high", "medium", "low"]
+    uncertainty: str = Field(min_length=1)
+    evidence: list[EvidenceReference] = Field(default_factory=list)

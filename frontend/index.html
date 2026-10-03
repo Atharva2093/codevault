@@ -29,10 +29,23 @@
 
     <section class="workspace hidden" id="workspace">
       <div class="repo-heading">
-        <div><p class="eyebrow">Repository overview</p><h2 id="repo-name">Repository</h2><a id="repo-url-display" target="_blank" rel="noreferrer"></a></div>
+        <div><p class="eyebrow">Repository overview</p><h2 id="repo-name">Repository</h2><p class="repo-owner" id="repo-owner"></p><a id="repo-url-display" target="_blank" rel="noreferrer"></a></div>
+        <div class="repo-stat"><strong id="repo-age">—</strong><span>days of history</span></div>
+        <div class="repo-stat"><strong id="repo-latest">—</strong><span>latest activity</span></div>
         <div class="repo-stat"><strong id="declared-count">0</strong><span>declared dependencies</span></div>
         <div class="repo-stat"><strong id="event-count">0</strong><span id="event-count-label">dependency changes in last 0 commits</span></div>
         <div class="repo-stat"><strong id="commit-count">0</strong><span>commits examined</span></div>
+      </div>
+
+      <section class="panel synopsis-panel">
+        <div class="panel-head"><div><p class="eyebrow">Project synopsis</p><h3>What is this project?</h3></div><button id="generate-synopsis">Generate synopsis <span>→</span></button></div>
+        <div id="synopsis-result" class="synopsis-result empty-state">Generate a concise, evidence-grounded explanation of this repository.</div>
+      </section>
+
+      <div class="grid facts-grid">
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Technology</p><h3>What it uses</h3></div></div><div id="technology-list" class="fact-list"></div></section>
+        <section class="panel"><div class="panel-head"><div><p class="eyebrow">Structure</p><h3>How it is arranged</h3></div></div><div id="structure-list" class="structure-list"></div></section>
+        <section class="panel contributors-panel"><div class="panel-head"><div><p class="eyebrow">Contributors</p><h3>Who shaped it</h3></div></div><div id="contributor-list" class="contributor-list"></div></section>
       </div>
 
       <div class="grid">
