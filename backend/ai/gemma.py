@@ -28,25 +28,28 @@ class GemmaClient:
         self._client = client
 
     def analyze(self, evidence: Dict[str, Any]) -> DecisionAnalysis:
+        return self.analyze_structured(evidence, SYSTEM_INSTRUCTION, DecisionAnalysis)
+
+    def analyze_structured(self, evidence: Dict[str, Any], instruction: str, schema: Any) -> Any:
         if not self.api_key and self._client is None:
             raise GemmaError("GEMINI_API_KEY is not configured")
         client = self._client or self._build_client()
-        prompt = f"{SYSTEM_INSTRUCTION}\n\nEVIDENCE PACKAGE:\n{evidence}"
+        prompt = f"{instruction}\n\nEVIDENCE PACKAGE:\n{evidence}"
         try:
             try:
                 from google.genai import types
                 config = types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
+                    system_instruction=instruction,
                     response_mime_type="application/json",
-                    response_schema=DecisionAnalysis,
+                    response_schema=schema,
                 )
             except ImportError:
                 if self._client is None:
                     raise
                 config = {
-                    "system_instruction": SYSTEM_INSTRUCTION,
+                    "system_instruction": instruction,
                     "response_mime_type": "application/json",
-                    "response_schema": DecisionAnalysis,
+                    "response_schema": schema,
                 }
 
             response = client.models.generate_content(
@@ -56,11 +59,11 @@ class GemmaClient:
             )
             parsed = getattr(response, "parsed", None)
             if parsed is not None:
-                return DecisionAnalysis.model_validate(parsed)
+                return schema.model_validate(parsed)
             text = getattr(response, "text", None)
             if not text:
                 raise GemmaError("Gemma returned an empty response")
-            return DecisionAnalysis.model_validate_json(text)
+            return schema.model_validate_json(text)
         except GemmaError:
             raise
         except Exception as exc:

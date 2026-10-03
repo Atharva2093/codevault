@@ -31,3 +31,13 @@ class RepositorySynopsis(BaseModel):
     confidence: Literal["high", "medium", "low"]
     uncertainty: str = Field(min_length=1)
     evidence: list[EvidenceReference] = Field(default_factory=list)
+
+
+class ProjectArchaeology(BaseModel):
+    what_changed: str = Field(min_length=1)
+    facts: list[str] = Field(default_factory=list)
+    likely_reason: str = Field(min_length=1)
+    reasoning: list[str] = Field(default_factory=list)
+    uncertainty: str = Field(min_length=1)
+    confidence: Literal["high", "medium", "low"]
+    evidence: list[EvidenceReference] = Field(default_factory=list)

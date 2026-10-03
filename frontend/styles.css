@@ -81,6 +81,17 @@ h3 { font-size: 23px; }
 .timeline-date { color: var(--muted); font-size: 11px; }
 .timeline-message { margin-top: 3px; font-weight: 600; }
 .timeline-event { display: inline-block; margin-top: 5px; padding: 3px 7px; color: var(--mint-strong); background: #eaf8ee; border-radius: 4px; font-size: 11px; }
+.archaeology-button { display: block; min-height: 30px; margin-top: 9px; padding: 0 10px; color: var(--navy); background: #e8f1f7; border-color: #cfe0ea; font-size: 11px; }
+.archaeology-panel { margin-top: 18px; }
+.archaeology-result { padding: 22px; background: #f8fbf9; border-left: 4px solid var(--coral); }
+.archaeology-reason { margin-top: 18px; line-height: 1.5; }
+.archaeology-reason p { margin: 6px 0 0; color: var(--muted); }
+.archaeology-items { display: grid; gap: 8px; margin-top: 18px; }
+.archaeology-item { display: grid; grid-template-columns: 90px 1fr; gap: 10px; padding: 10px 12px; background: #fff; border: 1px solid var(--line); border-radius: 5px; font-size: 13px; line-height: 1.5; }
+.archaeology-item strong { font-size: 11px; letter-spacing: .06em; }
+.archaeology-item.fact strong { color: var(--mint-strong); }
+.archaeology-item.inference strong { color: var(--coral); }
+.uncertainty { padding-top: 14px; border-top: 1px solid var(--line); }
 .decision-panel { margin-top: 18px; }
 .decision-controls { display: flex; gap: 10px; }
 .decision-controls select { min-width: 0; flex: 1; padding: 12px; background: var(--paper); }

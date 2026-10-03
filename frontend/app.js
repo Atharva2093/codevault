@@ -79,7 +79,32 @@ function renderDependencies() {
 function renderTimeline(entries) {
   const timeline = $("timeline");
   if (!entries.length) { timeline.innerHTML = '<p class="empty-state">No commits were returned.</p>'; return; }
-  timeline.innerHTML = entries.map((entry) => `<div class="timeline-entry"><div class="timeline-date">${formatDate(entry.timestamp)} · ${escapeHtml(entry.author || "Unknown author")}</div><div class="timeline-message">${escapeHtml(entry.message)}</div>${entry.dependency_events.map((event) => `<span class="timeline-event">${escapeHtml(event.action)} · ${escapeHtml(event.dep_name)}</span>`).join(" ")}</div>`).join("");
+  timeline.innerHTML = entries.map((entry) => `<div class="timeline-entry"><div class="timeline-date">${formatDate(entry.timestamp)} · ${escapeHtml(entry.author || "Unknown author")}</div><div class="timeline-message">${escapeHtml(entry.message)}</div>${entry.dependency_events.map((event) => `<span class="timeline-event">${escapeHtml(event.action)} · ${escapeHtml(event.dep_name)}</span>`).join(" ")}<button class="archaeology-button" data-commit="${escapeHtml(entry.sha)}">Why this change?</button></div>`).join("");
+  timeline.querySelectorAll(".archaeology-button").forEach((button) => button.addEventListener("click", () => loadArchaeology(button.dataset.commit)));
+}
+
+async function loadArchaeology(commitSha) {
+  setError("archaeology-error");
+  $("archaeology-confidence").textContent = "Reading evidence...";
+  $("archaeology-result").className = "archaeology-result empty-state";
+  $("archaeology-result").textContent = "Gemma is comparing the selected commit with its repository context.";
+  try {
+    const result = await api(`/api/v1/repos/${state.sessionId}/commits/${encodeURIComponent(commitSha)}/archaeology`);
+    renderArchaeology(result, commitSha);
+  } catch (error) {
+    setError("archaeology-error", error.message);
+    $("archaeology-confidence").textContent = "Unavailable";
+  }
+}
+
+function renderArchaeology(result, commitSha) {
+  $("archaeology-title").textContent = `Why did ${commitSha.slice(0, 10)} change?`;
+  $("archaeology-confidence").textContent = `${result.confidence} confidence`;
+  $("archaeology-result").className = "archaeology-result";
+  const facts = result.facts.map((fact) => `<div class="archaeology-item fact"><strong>FACT</strong><span>${escapeHtml(fact)}</span></div>`).join("");
+  const reasoning = result.reasoning.map((item) => `<div class="archaeology-item inference"><strong>INFERENCE</strong><span>${escapeHtml(item)}</span></div>`).join("");
+  const evidence = result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("");
+  $("archaeology-result").innerHTML = `<div class="result-title">${escapeHtml(result.what_changed)}</div><div class="archaeology-reason"><strong>Likely reason</strong><p>${escapeHtml(result.likely_reason)}</p></div><div class="archaeology-items">${facts}${reasoning}</div><div class="archaeology-reason uncertainty"><strong>UNCERTAINTY</strong><p>${escapeHtml(result.uncertainty)}</p></div><div class="evidence-list">${evidence}</div>`;
 }
 
 function renderTechnology(items) {
