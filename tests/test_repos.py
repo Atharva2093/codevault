@@ -301,5 +301,6 @@ class TestCleanup:
             "max_commits": 5,
         })
         assert resp.status_code == 500
-        clones = DATA_DIR / "clones"
+        import backend.config as cfg
+        clones = cfg.DATA_DIR / "clones"
         assert clones.exists() is False

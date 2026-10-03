@@ -23,3 +23,15 @@ htmlcov/
 
 # OS
 .DS_Store
+
+.pytest_tmp/
+.pytest_cache/
+__pycache__/
+*.pyc
+# Test artifacts
+.pytest_tmp/
+.pytest_cache/
+
+# Test artifacts
+.pytest_tmp/
+.pytest_cache/
