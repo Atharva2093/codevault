@@ -18,6 +18,7 @@ from backend.api.endpoints import decisions
 from backend.api.endpoints import insights
 from backend.api.endpoints import repository
 from backend.api.endpoints import archaeology
+from backend.api.endpoints import issues
 
 
 @asynccontextmanager
@@ -45,6 +46,7 @@ app.include_router(decisions.router)
 app.include_router(insights.router)
 app.include_router(repository.router)
 app.include_router(archaeology.router)
+app.include_router(issues.router)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")

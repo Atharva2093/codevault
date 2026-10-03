@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class EvidenceReference(BaseModel):
-    source_type: Literal["dependency", "commit", "dependency_event", "file_change", "current_usage"]
+    source_type: Literal["dependency", "commit", "dependency_event", "file_change", "current_usage", "issue", "technology"]
     source_id: str
     claim: str = Field(min_length=1)
 
@@ -40,4 +40,18 @@ class ProjectArchaeology(BaseModel):
     reasoning: list[str] = Field(default_factory=list)
     uncertainty: str = Field(min_length=1)
     confidence: Literal["high", "medium", "low"]
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+
+
+class IssueAnalysis(BaseModel):
+    issue_number: int = Field(ge=1)
+    summary: str = Field(min_length=1)
+    problem: str = Field(min_length=1)
+    likely_affected_area: str = Field(min_length=1)
+    relevant_technologies: list[str] = Field(default_factory=list)
+    estimated_complexity: Literal["low", "medium", "high", "unknown"]
+    required_skills: list[str] = Field(default_factory=list)
+    facts: list[str] = Field(default_factory=list)
+    reasoning: list[str] = Field(default_factory=list)
+    uncertainty: str = Field(min_length=1)
     evidence: list[EvidenceReference] = Field(default_factory=list)

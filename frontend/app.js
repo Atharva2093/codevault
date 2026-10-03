@@ -65,8 +65,53 @@ async function renderWorkspace() {
   renderStructure(overview.structure);
   renderContributors(overview.contributors);
   renderTimeline(overview.history);
+  await loadIssues();
   populateDependencySelect();
   await loadStoredSynopsis();
+}
+
+async function loadIssues() {
+  setError("issues-error");
+  try {
+    const issues = await api(`/api/v1/repos/${state.sessionId}/issues`);
+    $("issue-count").textContent = `${issues.length} open`;
+    const list = $("issues-list");
+    if (!issues.length) { list.innerHTML = '<p class="empty-state">No open issues were found.</p>'; return; }
+    list.innerHTML = issues.map((issue) => `<article class="issue-card"><div class="issue-card-head"><strong>#${issue.number}</strong><span>${escapeHtml(issue.author)}</span></div><h4>${escapeHtml(issue.title)}</h4><p>${escapeHtml((issue.body || "No description provided.").slice(0, 220))}</p><div class="issue-labels">${issue.labels.map((label) => `<span>${escapeHtml(label)}</span>`).join("")}</div><div class="issue-actions"><a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noreferrer">View on GitHub</a><button class="issue-analyze-button" data-issue="${issue.number}">Analyze Issue <span>→</span></button></div></article>`).join("");
+    list.querySelectorAll(".issue-analyze-button").forEach((button) => button.addEventListener("click", () => loadIssueAnalysis(button.dataset.issue)));
+  } catch (error) {
+    $("issue-count").textContent = "Unavailable";
+    setError("issues-error", error.message);
+    $("issues-list").innerHTML = '<p class="empty-state">Open issues could not be loaded.</p>';
+  }
+}
+
+async function loadIssueAnalysis(issueNumber) {
+  const panel = $("issue-analysis-panel");
+  panel.classList.remove("hidden");
+  setError("issue-analysis-error");
+  $("issue-complexity").textContent = "Reading evidence...";
+  $("issue-analysis-result").className = "archaeology-result empty-state";
+  $("issue-analysis-result").textContent = "Gemma is comparing the issue with repository technologies and history.";
+  try {
+    const result = await api(`/api/v1/repos/${state.sessionId}/issues/${encodeURIComponent(issueNumber)}/analysis`);
+    renderIssueAnalysis(result);
+  } catch (error) {
+    setError("issue-analysis-error", error.message);
+    $("issue-complexity").textContent = "Unavailable";
+  }
+}
+
+function renderIssueAnalysis(result) {
+  $("issue-analysis-title").textContent = `Issue #${result.issue_number}`;
+  $("issue-complexity").textContent = `${result.estimated_complexity} complexity`;
+  $("issue-analysis-result").className = "archaeology-result";
+  const facts = result.facts.map((fact) => `<div class="archaeology-item fact"><strong>FACT</strong><span>${escapeHtml(fact)}</span></div>`).join("");
+  const reasoning = result.reasoning.map((item) => `<div class="archaeology-item inference"><strong>INFERENCE</strong><span>${escapeHtml(item)}</span></div>`).join("");
+  const technologies = result.relevant_technologies.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
+  const skills = result.required_skills.map((item) => `<span class="structure-chip">${escapeHtml(item)}</span>`).join("");
+  const evidence = result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("");
+  $("issue-analysis-result").innerHTML = `<div class="result-title">${escapeHtml(result.summary)}</div><div class="archaeology-reason"><strong>Problem</strong><p>${escapeHtml(result.problem)}</p></div><div class="archaeology-reason"><strong>Likely affected area</strong><p>${escapeHtml(result.likely_affected_area)}</p></div><div class="issue-analysis-tags"><div><strong>Technologies</strong><div>${technologies || '<span class="empty-state">Insufficient evidence</span>'}</div></div><div><strong>Required skills</strong><div>${skills || '<span class="empty-state">Insufficient evidence</span>'}</div></div></div><div class="archaeology-items">${facts}${reasoning}</div><div class="archaeology-reason uncertainty"><strong>UNCERTAINTY</strong><p>${escapeHtml(result.uncertainty)}</p></div><div class="evidence-list">${evidence}</div>`;
 }
 
 function renderDependencies() {

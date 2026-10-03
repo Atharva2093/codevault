@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
-from backend.ai.schemas import DecisionAnalysis, RepositorySynopsis
+from backend.ai.schemas import DecisionAnalysis, IssueAnalysis, RepositorySynopsis
 
 
 # ---- Request / Input ----
@@ -101,6 +101,11 @@ class RepositorySynopsisResponse(RepositorySynopsis):
     session_id: str
     model_name: str
     created_at: datetime
+
+
+class IssueAnalysisResponse(IssueAnalysis):
+    model_name: str
+
 
 
 # Forward refs

@@ -65,11 +65,23 @@
         <div id="archaeology-result" class="archaeology-result empty-state">Choose “Why this change?” on a timeline entry to inspect its evidence.</div>
       </section>
 
+      <section class="panel issues-panel">
+        <div class="panel-head"><div><p class="eyebrow">Contribution opportunities</p><h3>Open GitHub issues</h3></div><span class="count-pill" id="issue-count">Loading</span></div>
+        <p class="form-error" id="issues-error" role="alert"></p>
+        <div id="issues-list" class="issues-list"><p class="empty-state">Fetching open issues...</p></div>
+      </section>
+
       <section class="panel decision-panel">
         <div class="panel-head"><div><p class="eyebrow">Evidence review</p><h3 id="selected-title">Select a dependency</h3></div><span class="confidence" id="confidence">Awaiting analysis</span></div>
         <div class="decision-controls"><select id="dependency-select"><option value="">Choose a dependency</option></select><select id="event-select"><option value="">All historical events</option></select><button id="analyze-decision" disabled>Ask Gemma <span>→</span></button></div>
         <p class="form-error" id="decision-error" role="alert"></p>
         <div id="decision-result" class="decision-result empty-state">Choose a dependency to inspect its evidence and decision history.</div>
+      </section>
+
+      <section class="panel issue-analysis-panel hidden" id="issue-analysis-panel">
+        <div class="panel-head"><div><p class="eyebrow">Issue intelligence</p><h3 id="issue-analysis-title">Analyze an issue</h3></div><span class="confidence" id="issue-complexity">Awaiting analysis</span></div>
+        <p class="form-error" id="issue-analysis-error" role="alert"></p>
+        <div id="issue-analysis-result" class="archaeology-result empty-state">Choose an issue to inspect its scope and evidence.</div>
       </section>
 
       <div class="grid insight-grid">
