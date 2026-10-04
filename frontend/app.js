@@ -259,12 +259,15 @@ document.querySelectorAll(".tab-item").forEach((link) => {
 });
 
 async function checkApi() {
+  const status = $("api-status");
+  if (!status) return;
+
   try {
     await api("/health");
-    $("api-status").textContent = "API online";
+    status.textContent = "API online";
   } catch {
-    $("api-status").textContent = "API unavailable";
-    $("api-status").style.color = "#b44735";
+    status.textContent = "API unavailable";
+    status.style.color = "#b44735";
   }
 }
 
@@ -311,9 +314,11 @@ async function renderWorkspace() {
   $("repo-url-display").textContent = state.repo.repo_url;
   $("repo-url-display").href = state.repo.repo_url;
   const overview = normalizeOverview(await api(`/api/v1/repos/${state.sessionId}/overview`));
-  $("repo-owner").textContent = overview.repository.owner ? `by ${overview.repository.owner}` : "Owner unavailable from URL";
-  $("repo-age").textContent = overview.timeline.age_days ?? "—";
-  $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
+  if ($("repo-owner")) {
+    $("repo-owner").textContent = overview.repository.owner ? `by ${overview.repository.owner}` : "Owner unavailable from URL";
+  }
+  if ($("repo-age")) $("repo-age").textContent = overview.timeline.age_days ?? "—";
+  if ($("repo-latest")) $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
   $("commit-count").textContent = state.repo.analyzed_commits;
   const dependencyEvents = asArray(state.repo.dependency_events);
   $("event-count").textContent = dependencyEvents.length;
