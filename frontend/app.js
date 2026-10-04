@@ -12,6 +12,58 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+const asArray = (value) => Array.isArray(value) ? value : [];
+const asObject = (value) => value && typeof value === "object" ? value : {};
+
+function normalizeOverview(value) {
+  const overview = asObject(value);
+  return {
+    ...overview,
+    repository: asObject(overview.repository),
+    timeline: asObject(overview.timeline),
+    activity: asObject(overview.activity),
+    technologies: asArray(overview.technologies),
+    structure: asArray(overview.structure),
+    contributors: asArray(overview.contributors),
+    history: asArray(overview.history).map((entry) => ({
+      ...asObject(entry),
+      dependency_events: asArray(entry?.dependency_events),
+    })),
+  };
+}
+
+function normalizeIssue(value) {
+  const issue = asObject(value);
+  return { ...issue, labels: asArray(issue.labels) };
+}
+
+function normalizeAnalysis(value) {
+  const result = asObject(value);
+  return {
+    ...result,
+    facts: asArray(result.facts),
+    reasoning: asArray(result.reasoning),
+    relevant_technologies: asArray(result.relevant_technologies),
+    required_skills: asArray(result.required_skills),
+    suggested_first_steps: asArray(result.suggested_first_steps),
+    relevant_history: asArray(result.relevant_history),
+    relevant_skills: asArray(result.relevant_skills),
+    evidence: asArray(result.evidence),
+  };
+}
+
+function assertFrontendNormalization() {
+  const overview = normalizeOverview({});
+  const analysis = normalizeAnalysis({});
+  if (![overview.technologies, overview.structure, overview.contributors, overview.history].every(Array.isArray)) {
+    throw new Error("Frontend overview normalization failed");
+  }
+  if (![normalizeIssue({}).labels, analysis.facts, analysis.reasoning, analysis.evidence].every(Array.isArray)) {
+    throw new Error("Frontend response normalization failed");
+  }
+}
+
+assertFrontendNormalization();
 
 /* Theme Management (Light / Dark) */
 function initTheme() {
@@ -258,12 +310,17 @@ async function renderWorkspace() {
   $("repo-name").textContent = state.repo.repo_name || "Repository Overview";
   $("repo-url-display").textContent = state.repo.repo_url;
   $("repo-url-display").href = state.repo.repo_url;
+  const overview = normalizeOverview(await api(`/api/v1/repos/${state.sessionId}/overview`));
+  $("repo-owner").textContent = overview.repository.owner ? `by ${overview.repository.owner}` : "Owner unavailable from URL";
+  $("repo-age").textContent = overview.timeline.age_days ?? "—";
+  $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
   $("commit-count").textContent = state.repo.analyzed_commits;
-  $("event-count").textContent = state.repo.dependency_events.length;
+  const dependencyEvents = asArray(state.repo.dependency_events);
+  $("event-count").textContent = dependencyEvents.length;
   if ($("event-count-label")) {
     $("event-count-label").textContent = `dependency changes in last ${state.repo.analyzed_commits} commits`;
   }
-  state.dependencies = state.repo.dependency_evidence || [];
+  state.dependencies = asArray(state.repo.dependency_evidence);
   if ($("declared-count")) {
     $("declared-count").textContent = state.dependencies.length;
   }
@@ -392,6 +449,7 @@ function renderOverviewTimeline(entries) {
 }
 
 function populateDependencySelect() {
+  state.dependencies = asArray(state.dependencies);
   $("dependency-select").innerHTML = '<option value="">Choose a dependency</option>' + state.dependencies.map((item) => `<option value="${escapeHtml(item.dependency_name)}">${escapeHtml(item.dependency_name)}</option>`).join("");
   $("dependency-select").addEventListener("change", selectDependency);
   $("event-select").addEventListener("change", updateActionState);
@@ -400,7 +458,8 @@ function populateDependencySelect() {
 function selectDependency() {
   const name = $("dependency-select").value;
   const item = state.dependencies.find((candidate) => candidate.dependency_name === name);
-  $("event-select").innerHTML = '<option value="">All historical events</option>' + (item?.historical_dependency_events || []).map((event) => `<option value="${escapeHtml(event.commit_hash)}">${escapeHtml(event.commit_hash.slice(0, 10))} · ${escapeHtml(event.action)}</option>`).join("");
+  const historicalEvents = asArray(item?.historical_dependency_events);
+  $("event-select").innerHTML = '<option value="">All historical events</option>' + historicalEvents.map((event) => `<option value="${escapeHtml(event.commit_hash)}">${escapeHtml((event.commit_hash || "").slice(0, 10))} · ${escapeHtml(event.action)}</option>`).join("");
   $("selected-title").textContent = name ? `Why was ${name} introduced?` : "Select a dependency";
   updateActionState();
   if (name) loadInsights(name);
@@ -438,6 +497,7 @@ $("analyze-decision").addEventListener("click", async () => {
 });
 
 function renderDecision(result) {
+  result = normalizeAnalysis(result);
   $("confidence").textContent = `${result.confidence} confidence`;
   $("decision-result").classList.remove("empty-state");
   $("decision-result").innerHTML = `<div class="result-title">${escapeHtml(result.decision)}</div><div class="result-reason">${escapeHtml(result.reason)}</div><div class="evidence-list">${result.evidence.map((item) => `<div class="evidence-item"><strong>${escapeHtml(item.source_type)}:${escapeHtml(item.source_id)}</strong><br>${escapeHtml(item.claim)}</div>`).join("")}</div><div class="insight-row"><span>Current validity</span><strong>${escapeHtml(result.current_validity)}</strong></div><div class="insight-row"><span>Uncertainty</span><strong>${escapeHtml(result.uncertainty)}</strong></div>`;

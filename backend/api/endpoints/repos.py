@@ -19,7 +19,8 @@ from backend.api.schemas import (
     DependencyEventSummary,
     DependencyEvidenceSummary,
 )
-from backend.config import PUBLIC_GIT_HOSTS, DATA_DIR, MAX_COMMITS_HARD
+from backend import config
+from backend.config import PUBLIC_GIT_HOSTS, MAX_COMMITS_HARD
 from backend.db import db
 from backend.analysis.git_repo import GitRepository, MANIFEST_FILES
 from backend.analysis.manifests import diff_manifests
@@ -55,7 +56,7 @@ def _validate_public_git_url(url: str) -> tuple[str, str]:
 
 
 def _session_dir(session_id: str) -> Path:
-    return DATA_DIR / "clones" / session_id
+    return config.DATA_DIR / "clones" / session_id
 
 
 def _extract_repo_name(clone_url: str) -> str:
@@ -197,9 +198,14 @@ def create_repo(payload: RepoCreate):
     try:
         return _run_analysis(session_id, clone_url, max_commits)
     except Exception as e:
-        db.set_failed(session_id, str(e))
-        if clone_path.exists():
-            shutil.rmtree(clone_path, ignore_errors=True)
+        try:
+            db.set_failed(session_id, str(e))
+        finally:
+            if clone_path.exists():
+                shutil.rmtree(clone_path, ignore_errors=True)
+            clones_dir = clone_path.parent
+            if clones_dir.exists() and not any(clones_dir.iterdir()):
+                shutil.rmtree(clones_dir, ignore_errors=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Analysis failed: {e}",

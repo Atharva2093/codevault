@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
-from backend.ai.schemas import DecisionAnalysis
+from backend.ai.schemas import ContributionGuidance, DecisionAnalysis, IssueAnalysis, RepositorySynopsis
 
 
 # ---- Request / Input ----
@@ -95,6 +95,25 @@ class StoredDecisionAnalysis(DecisionAnalysis):
     target: str
     model_name: str
     created_at: datetime
+
+
+class RepositorySynopsisResponse(RepositorySynopsis):
+    session_id: str
+    model_name: str
+    created_at: datetime
+    evidence_status: Literal["COMPLETE"] = "COMPLETE"
+    ai_status: Literal["RUNNING", "COMPLETE", "FAILED"] = "COMPLETE"
+    evidence_preview: dict = Field(default_factory=dict)
+    timings: dict[str, float] = Field(default_factory=dict)
+
+
+class IssueAnalysisResponse(IssueAnalysis):
+    model_name: str
+
+
+class ContributionGuidanceResponse(ContributionGuidance):
+    model_name: str
+
 
 
 # Forward refs

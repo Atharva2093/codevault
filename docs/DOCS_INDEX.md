@@ -1,10 +1,11 @@
-# Documentation index
+# Documentation Index
 
 This folder contains the project documentation for the current repository state.
 
 ## Start here
 
-- [README.md](./README.md) — overview of the current project scope
+- [Repository README](../README.md) — product overview, demo flow, architecture, setup, and limitations
+- [README.md](./README.md) — documentation-directory overview
 - [GETTING_STARTED.md](./GETTING_STARTED.md) — local setup and first run
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — how the repository analysis pipeline works
 - [API.md](./API.md) — current API behavior and endpoints
@@ -26,8 +27,6 @@ This folder contains the project documentation for the current repository state.
 4. Use [API.md](./API.md) when integrating or testing endpoints.
 5. Use the roadmap and planning docs to separate completed work from future work.
 
-## Important repo boundary
+## Documentation boundary
 
-This repository is currently a deterministic evidence-first analysis tool, not a production-ready AI decision platform.
-
-The docs should reflect that distinction consistently.
+The docs distinguish deterministic repository facts from optional AI enrichment. Gemma interpretation is validated and evidence-constrained; when synopsis enrichment is unavailable, the deterministic repository intelligence remains available.

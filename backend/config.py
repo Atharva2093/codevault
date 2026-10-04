@@ -5,8 +5,10 @@ up automatically by the app; delete them manually when you are done.
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env", override=False)
 ENV = os.getenv("APP_ENV", "development")
 DEBUG = os.getenv("APP_DEBUG", "false").lower() == "true"
 
@@ -21,6 +23,8 @@ DEFAULT_MAX_COMMITS = 100
 # Product model configuration. The AI client reads the key at request time.
 GEMMA_MODEL = os.getenv("GEMMA_MODEL", "gemma-4-26b-a4b-it")
 GEMMA_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMMA_TIMEOUT_SECONDS = min(max(float(os.getenv("GEMMA_TIMEOUT_SECONDS", "20")), 0.1), 60)
+GEMMA_MAX_RETRIES = min(max(int(os.getenv("GEMMA_MAX_RETRIES", "1")), 0), 1)
 
 # GitHub URLs that we are happy to touch. SSH-style git@github.com: URLs are
 # accepted too, but no other host is whitelisted in Phase 1.
