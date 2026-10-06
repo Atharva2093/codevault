@@ -1,12 +1,12 @@
 # Contributing
 
-Thank you for being interested in improving CausalCode.
+Thank you for being interested in improving Code Vault.
 
 ## Development workflow
 
 ```bash
-git clone https://github.com/<your-user>/CausalCode.git
-cd CausalCode
+git clone https://github.com/<your-user>/CodeVault.git
+cd CodeVault
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip

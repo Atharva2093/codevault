@@ -4,7 +4,7 @@ This document defines the current product direction for this codebase as it exis
 
 ## Product summary
 
-CausalCode is a deterministic repository-analysis backend designed to answer questions about why a dependency or subsystem was introduced and how it evolved over time.
+Code Vault is a deterministic repository-analysis backend designed to answer questions about why a dependency or subsystem was introduced and how it evolved over time.
 
 The current implementation focuses on evidence-first analysis rather than fully autonomous AI product behavior.
 

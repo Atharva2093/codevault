@@ -39,7 +39,7 @@ class GitHubIssue(BaseModel):
 
 def fetch_open_issues(owner: str, name: str) -> list[GitHubIssue]:
     url = f"https://api.github.com/repos/{quote(owner, safe='')}/{quote(name, safe='')}/issues?state=open&per_page={MAX_GITHUB_ISSUES}"
-    request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "CausalCode"})
+    request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "Code Vault"})
     try:
         with urlopen(request, timeout=10) as response:
             payload = json.loads(response.read())

@@ -127,6 +127,12 @@ button span { margin-left: 10px; color: var(--mint); font-size: 19px; }
 .repo-stat span { color: var(--muted); font-size: 11px; display: block; margin-top: 6px; }
 .repo-link { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; margin-bottom: 18px; text-decoration: none; }
 .repo-link:hover { color: var(--coral); }
+.overview-facts { margin-top: 18px; }
+.fact-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fact-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--navy); }
+.fact-list li:last-child { border-bottom: 0; }
+.fact-list li span { color: var(--muted); font-size: 12px; }
+.fact-list code { color: var(--navy); }
 
 /* Overview Metrics */
 .overview-metrics-box { display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }

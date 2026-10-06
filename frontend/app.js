@@ -14,6 +14,16 @@ const state = {
 const $ = (id) => document.getElementById(id);
 const asArray = (value) => Array.isArray(value) ? value : [];
 const asObject = (value) => value && typeof value === "object" ? value : {};
+const asText = (value, fallback = "") => value == null ? fallback : String(value);
+
+function normalizeRepository(value) {
+  const repository = asObject(value);
+  return {
+    ...repository,
+    dependency_events: asArray(repository.dependency_events),
+    dependency_evidence: asArray(repository.dependency_evidence),
+  };
+}
 
 function normalizeOverview(value) {
   const overview = asObject(value);
@@ -69,7 +79,7 @@ assertFrontendNormalization();
 function initTheme() {
   let savedTheme = null;
   try {
-    savedTheme = localStorage.getItem("causalcode_theme");
+    savedTheme = localStorage.getItem("codevault_theme");
   } catch {}
 
   if (!savedTheme) {
@@ -87,7 +97,7 @@ function setTheme(theme, save = true) {
   }
   if (save) {
     try {
-      localStorage.setItem("causalcode_theme", theme);
+      localStorage.setItem("codevault_theme", theme);
     } catch {}
   }
 }
@@ -100,7 +110,7 @@ $("theme-toggle")?.addEventListener("click", () => {
 
 // Load last repo URL from localStorage on startup
 try {
-  const lastUrl = localStorage.getItem("causalcode_last_repo_url");
+  const lastUrl = localStorage.getItem("codevault_last_repo_url");
   if (lastUrl && $("repo-url")) {
     $("repo-url").value = lastUrl;
   }
@@ -287,14 +297,14 @@ $("analyze-form").addEventListener("submit", async (event) => {
 
   const repoUrlVal = $("repo-url").value;
   try {
-    localStorage.setItem("causalcode_last_repo_url", repoUrlVal);
+    localStorage.setItem("codevault_last_repo_url", repoUrlVal);
   } catch {}
 
   try {
-    state.repo = await api("/api/v1/repos", {
+    state.repo = normalizeRepository(await api("/api/v1/repos", {
       method: "POST",
       body: JSON.stringify({ repo_url: repoUrlVal, max_commits: Number($("max-commits").value) })
-    });
+    }));
     state.sessionId = state.repo.id;
     await renderWorkspace();
   } catch (error) {
@@ -319,20 +329,21 @@ async function renderWorkspace() {
   }
   if ($("repo-age")) $("repo-age").textContent = overview.timeline.age_days ?? "—";
   if ($("repo-latest")) $("repo-latest").textContent = formatDate(overview.activity.latest_commit_date);
-  $("commit-count").textContent = state.repo.analyzed_commits;
+  $("commit-count").textContent = state.repo.analyzed_commits ?? 0;
   const dependencyEvents = asArray(state.repo.dependency_events);
   $("event-count").textContent = dependencyEvents.length;
   if ($("event-count-label")) {
-    $("event-count-label").textContent = `dependency changes in last ${state.repo.analyzed_commits} commits`;
+    $("event-count-label").textContent = `dependency changes in last ${state.repo.analyzed_commits ?? 0} commits`;
   }
   state.dependencies = asArray(state.repo.dependency_evidence);
   if ($("declared-count")) {
     $("declared-count").textContent = state.dependencies.length;
   }
   $("dependency-count").textContent = `${state.dependencies.length} declared`;
+  renderOverviewFacts(overview);
 
   // Fetch timeline entries
-  state.timeline = await api(`/api/v1/repos/${state.sessionId}/timeline`);
+  state.timeline = asArray(await api(`/api/v1/repos/${state.sessionId}/timeline`));
 
   renderDependencies();
   renderOverviewTimeline(state.timeline);
@@ -347,6 +358,23 @@ async function renderWorkspace() {
   setTimeout(initScrollReveal, 100);
 }
 
+function renderOverviewFacts(overview) {
+  const technologies = asArray(overview.technologies);
+  const structure = asArray(overview.structure);
+  const technologyList = $("technology-list");
+  const structureList = $("structure-list");
+  if (technologyList) {
+    technologyList.innerHTML = technologies.length
+      ? technologies.map((item) => `<li><strong>${escapeHtml(asText(item.name, "Unknown"))}</strong><span class="mono">${asText(item.file_count, 0)} files</span></li>`).join("")
+      : '<li class="empty-state">No technologies detected.</li>';
+  }
+  if (structureList) {
+    structureList.innerHTML = structure.length
+      ? structure.map((item) => `<li><code>${escapeHtml(asText(item))}</code></li>`).join("")
+      : '<li class="empty-state">No top-level structure detected.</li>';
+  }
+}
+
 function renderOverviewMetrics() {
   const metricsBox = $("overview-metrics-box");
   const sparklineBox = $("sparkline-box");
@@ -358,7 +386,7 @@ function renderOverviewMetrics() {
 
   // 1. Commit-activity sparkline (SVG)
   const timestamps = state.timeline.map((e) => new Date(e.timestamp).getTime()).filter((t) => !isNaN(t)).sort((a, b) => a - b);
-  if (timestamps.length >= 2) {
+  if (timestamps.length >= 2 && sparklineBox) {
     const minT = timestamps[0];
     const maxT = timestamps[timestamps.length - 1];
     const buckets = new Array(10).fill(0);
@@ -382,7 +410,7 @@ function renderOverviewMetrics() {
         <polyline points="${points}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     `;
-  } else {
+  } else if (sparklineBox) {
     sparklineBox.innerHTML = "";
   }
 
@@ -397,7 +425,7 @@ function renderOverviewMetrics() {
     }
   });
 
-  if (totalTypes > 0) {
+  if (totalTypes > 0 && commitTypesBox) {
     const colors = {
       feature: "var(--navy)",
       feat: "var(--navy)",
@@ -424,7 +452,7 @@ function renderOverviewMetrics() {
       <div class="commit-types-bar">${segments}</div>
       <div class="commit-types-legend">${legend}</div>
     `;
-  } else {
+  } else if (commitTypesBox) {
     commitTypesBox.innerHTML = '<span class="empty-state">No commit type breakdown available in data.</span>';
   }
 
@@ -433,6 +461,7 @@ function renderOverviewMetrics() {
 
 function renderDependencies() {
   const list = $("dependency-list");
+  if (!list) return;
   if (!state.dependencies.length) {
     list.innerHTML = '<p class="empty-state">No dependency manifests found in the examined commits.</p>';
     return;
@@ -446,6 +475,7 @@ function renderDependencies() {
 
 function renderOverviewTimeline(entries) {
   const timeline = $("timeline");
+  if (!timeline) return;
   if (!entries || !entries.length) {
     timeline.innerHTML = '<p class="empty-state">No commits found in the examined history window.</p>';
     return;
@@ -455,9 +485,12 @@ function renderOverviewTimeline(entries) {
 
 function populateDependencySelect() {
   state.dependencies = asArray(state.dependencies);
-  $("dependency-select").innerHTML = '<option value="">Choose a dependency</option>' + state.dependencies.map((item) => `<option value="${escapeHtml(item.dependency_name)}">${escapeHtml(item.dependency_name)}</option>`).join("");
-  $("dependency-select").addEventListener("change", selectDependency);
-  $("event-select").addEventListener("change", updateActionState);
+  const dependencySelect = $("dependency-select");
+  const eventSelect = $("event-select");
+  if (!dependencySelect || !eventSelect) return;
+  dependencySelect.innerHTML = '<option value="">Choose a dependency</option>' + state.dependencies.map((item) => `<option value="${escapeHtml(asText(item.dependency_name))}">${escapeHtml(asText(item.dependency_name))}</option>`).join("");
+  dependencySelect.addEventListener("change", selectDependency);
+  eventSelect.addEventListener("change", updateActionState);
 }
 
 function selectDependency() {
@@ -959,7 +992,7 @@ $("download-json-btn")?.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `causalcode-report-${state.repo.repo_name || "repo"}.json`;
+  a.download = `codevault-report-${state.repo.repo_name || "repo"}.json`;
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -969,7 +1002,7 @@ $("download-md-btn")?.addEventListener("click", () => {
   const activeCount = state.dependencies.filter((d) => getDepStatus(d) === "active").length;
   const unusedCount = state.dependencies.filter((d) => getDepStatus(d) === "unused").length;
 
-  let md = `# CausalCode Repository Analysis Report\n\n`;
+  let md = `# Code Vault Repository Analysis Report\n\n`;
   md += `- **Repository:** ${state.repo.repo_url}\n`;
   md += `- **Commits Examined:** ${state.repo.analyzed_commits}\n`;
   md += `- **Declared Dependencies:** ${state.dependencies.length}\n`;
@@ -989,7 +1022,7 @@ $("download-md-btn")?.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `causalcode-report-${state.repo.repo_name || "repo"}.md`;
+  a.download = `codevault-report-${state.repo.repo_name || "repo"}.md`;
   a.click();
   URL.revokeObjectURL(url);
 });

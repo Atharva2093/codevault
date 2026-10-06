@@ -64,7 +64,7 @@ class MultipleReferenceSynopsisClient(FakeSynopsisClient):
 @pytest.fixture
 def overview_repo(monkeypatch, tmp_path):
     monkeypatch.setattr("backend.config.DATA_DIR", tmp_path)
-    db.path = tmp_path / "causalcode.db"
+    db.path = tmp_path / "codevault.db"
     db.init_schema()
     clone = tmp_path / "clones" / "session1"
     (clone / "src").mkdir(parents=True)

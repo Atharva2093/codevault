@@ -12,8 +12,8 @@ This repository is set up for local development with Python, FastAPI, and a stat
 ## Clone and install
 
 ```bash
-git clone https://github.com/<your-user>/CausalCode.git
-cd CausalCode
+git clone https://github.com/<your-user>/CodeVault.git
+cd CodeVault
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -33,7 +33,7 @@ The project uses the following environment values by default:
 ```env
 APP_ENV=development
 APP_DEBUG=false
-CAUSALCODE_DATA_DIR=./data
+CODEVAULT_DATA_DIR=./data
 GEMINI_API_KEY=your_google_api_key_here
 GEMMA_MODEL=gemma-4-26b-a4b-it
 GEMMA_TIMEOUT_SECONDS=20
@@ -78,7 +78,7 @@ Make sure the venv is activated and you are running inside the repo root.
 
 ### Public repository analysis fails
 
-CausalCode only accepts public repository URLs from a small allowlist of public Git hosts configured in `backend/config.py`.
+Code Vault only accepts public repository URLs from a small allowlist of public Git hosts configured in `backend/config.py`.
 
 ### Gemma enrichment fails
 

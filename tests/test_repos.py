@@ -51,7 +51,7 @@ def isolated_env(monkeypatch, tmp_path):
     # Make DATA_DIR point to the temp path
     monkeypatch.setattr("backend.config.DATA_DIR", tmp_path)
     # Reset the DB singleton to use the new DATA_DIR
-    db.path = tmp_path / "causalcode.db"
+    db.path = tmp_path / "codevault.db"
     db.init_schema()
     # Also patch the DATA_DIR used in repos.py and main.py
     import backend.api.endpoints.repos as repos_mod
@@ -297,7 +297,7 @@ class TestCleanup:
     def test_clone_directory_removed_after_failure(self):
         # Point at an invalid repo on a valid host so clone fails; verify no clone dir left
         resp = client.post("/api/v1/repos", json={
-            "repo_url": "https://github.com/causalcode-testing/non-existent-repo-12345",
+            "repo_url": "https://github.com/codevault-testing/non-existent-repo-12345",
             "max_commits": 5,
         })
         assert resp.status_code == 500

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CausalCode | Repository memory</title>
+  <title>Code Vault | Repository memory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">Causal<span>Code</span></a>
+    <a class="brand" href="/">Code<span>Vault</span></a>
     <div class="topbar-actions">
       <span class="status-dot" id="api-status">API checking</span>
       <button id="theme-toggle" class="theme-toggle mono" aria-label="Toggle theme">Dark mode</button>
@@ -78,6 +78,17 @@
           <div class="repo-stat"><strong id="declared-count" class="tabular-nums">0</strong><span class="mono">declared dependencies</span></div>
           <div class="repo-stat"><strong id="event-count" class="tabular-nums">0</strong><span id="event-count-label" class="mono">dependency changes in last 0 commits</span></div>
           <div class="repo-stat"><strong id="commit-count" class="tabular-nums">0</strong><span class="mono">commits examined</span></div>
+        </div>
+
+        <div class="grid overview-facts">
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">Detected stack</p><h3>Technologies</h3></div></div>
+            <ul id="technology-list" class="fact-list"><li class="empty-state">No technologies detected.</li></ul>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">Repository shape</p><h3>Structure</h3></div></div>
+            <ul id="structure-list" class="fact-list"><li class="empty-state">No top-level structure detected.</li></ul>
+          </section>
         </div>
 
         <!-- Sparkline and Commit Type breakdown -->
@@ -170,7 +181,7 @@
           <span class="header-rule"></span>
         </div>
         <div class="about-content">
-          <p>CausalCode constructs a deterministic memory layer for software repositories by extracting structural evidence directly from Git commit logs and dependency manifest files (such as <code>requirements.txt</code>, <code>pyproject.toml</code>, and <code>package.json</code>).</p>
+          <p>Code Vault constructs a deterministic memory layer for software repositories by extracting structural evidence directly from Git commit logs and dependency manifest files (such as <code>requirements.txt</code>, <code>pyproject.toml</code>, and <code>package.json</code>).</p>
           <p>AI models (such as Gemma) only explain collected evidence and must cite specific commits or file changes. All AI assertions are strictly bounded to empirical repository data.</p>
           <p>Static import analysis detects file-level module references across the codebase at HEAD. Because static analysis cannot execute code, it cannot prove dynamic runtime execution or configuration-only dependency usage.</p>
         </div>
@@ -203,7 +214,7 @@
   </main>
 
   <footer class="footer">
-    <p class="mono">CausalCode · Deterministic repository memory & dependency evidence layer</p>
+    <p class="mono">Code Vault · Deterministic repository memory & dependency evidence layer</p>
   </footer>
 
   <script src="/static/app.js"></script>

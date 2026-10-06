@@ -62,7 +62,7 @@ def valid_guidance(number=1, history=True):
 @pytest.fixture
 def guidance_repo(monkeypatch, tmp_path):
     monkeypatch.setattr("backend.config.DATA_DIR", tmp_path)
-    db.path = tmp_path / "causalcode.db"
+    db.path = tmp_path / "codevault.db"
     db.init_schema()
     clone = tmp_path / "clones" / "session1"
     clone.mkdir(parents=True)

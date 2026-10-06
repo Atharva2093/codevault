@@ -1,7 +1,7 @@
 [project]
-name = "causalcode"
+name = "codevault"
 version = "0.1.0"
-description = "CausalCode - code archaeology and engineering decision intelligence"
+description = "Code Vault - code archaeology and engineering decision intelligence"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.109.0",

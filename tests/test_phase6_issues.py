@@ -65,7 +65,7 @@ def analysis_result(number=1, reference="issue:1"):
 @pytest.fixture
 def issue_repo(monkeypatch, tmp_path):
     monkeypatch.setattr("backend.config.DATA_DIR", tmp_path)
-    db.path = tmp_path / "causalcode.db"
+    db.path = tmp_path / "codevault.db"
     db.init_schema()
     clone = tmp_path / "clones" / "session1"
     clone.mkdir(parents=True)

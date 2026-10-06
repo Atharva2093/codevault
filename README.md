@@ -1,8 +1,8 @@
-# CausalCode
+# Code Vault
 
-> Git tells you what changed. CausalCode explains why it changed — and helps you decide what to contribute next.
+> Git tells you what changed. Code Vault explains why it changed — and helps you decide what to contribute next.
 
-CausalCode is an evidence-first repository intelligence tool for public Git repositories. It turns repository history, dependency changes, current usage, project structure, and GitHub issues into a guided engineering workflow:
+Code Vault is an evidence-first repository intelligence tool for public Git repositories. It turns repository history, dependency changes, current usage, project structure, and GitHub issues into a guided engineering workflow:
 
 ```text
 GitHub repository
@@ -16,7 +16,7 @@ The product is repository-agnostic. Give it any reasonable public repository and
 
 ## Why It Exists
 
-Git history is excellent at recording events, but a commit list rarely explains the engineering context behind those events. CausalCode connects historical changes to current code usage and open contribution opportunities so a developer can understand a project before changing it.
+Git history is excellent at recording events, but a commit list rarely explains the engineering context behind those events. Code Vault connects historical changes to current code usage and open contribution opportunities so a developer can understand a project before changing it.
 
 ## What It Does
 
@@ -68,8 +68,8 @@ AI requests use compact evidence, structured JSON output, bounded timeouts, and 
 Requirements: Python 3.10+, Git, and network access for public repository ingestion.
 
 ```bash
-git clone https://github.com/<your-user>/CausalCode.git
-cd CausalCode
+git clone https://github.com/<your-user>/CodeVault.git
+cd CodeVault
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -82,7 +82,7 @@ Set the API key in `.env` for Gemma enrichment. Never commit `.env`:
 ```env
 APP_ENV=development
 APP_DEBUG=false
-CAUSALCODE_DATA_DIR=./data
+CODEVAULT_DATA_DIR=./data
 GEMINI_API_KEY=your_google_api_key_here
 GEMMA_MODEL=gemma-4-26b-a4b-it
 GEMMA_TIMEOUT_SECONDS=20
@@ -160,4 +160,4 @@ The workflow accepts arbitrary public repository URLs; no repository, language, 
 - [Roadmap](docs/ROADMAP.md)
 - [Contributing](docs/CONTRIBUTING.md)
 
-CausalCode is being developed as a hackathon-ready demonstration of evidence-grounded repository understanding: explain a project, trace its evolution, understand its issues, and identify a sensible place to contribute.
+Code Vault is being developed as a hackathon-ready demonstration of evidence-grounded repository understanding: explain a project, trace its evolution, understand its issues, and identify a sensible place to contribute.

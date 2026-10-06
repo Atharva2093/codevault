@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="CausalCode API",
+    title="Code Vault API",
     version="0.1.0",
     lifespan=lifespan,
 )

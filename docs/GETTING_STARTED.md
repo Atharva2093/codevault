@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide gets the current CausalCode demo running locally. For the product overview, read the repository-root [README](../README.md).
+This guide gets the current Code Vault demo running locally. For the product overview, read the repository-root [README](../README.md).
 
 ## Requirements
 
@@ -12,8 +12,8 @@ This guide gets the current CausalCode demo running locally. For the product ove
 ## Setup
 
 ```bash
-git clone https://github.com/<your-user>/CausalCode.git
-cd CausalCode
+git clone https://github.com/<your-user>/CodeVault.git
+cd CodeVault
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -36,7 +36,7 @@ Useful settings:
 | --- | --- | --- |
 | `APP_ENV` | `development` | Runtime environment label |
 | `APP_DEBUG` | `false` | Application debug flag |
-| `CAUSALCODE_DATA_DIR` | `./data` | SQLite database and repository clone root |
+| `CODEVAULT_DATA_DIR` | `./data` | SQLite database and repository clone root |
 | `GEMINI_API_KEY` | unset | Gemini API authentication for Gemma enrichment |
 | `GEMMA_MODEL` | `gemma-4-26b-a4b-it` | Product model |
 | `GEMMA_TIMEOUT_SECONDS` | `20` | Bounded per-request transport timeout, capped at 60 seconds |

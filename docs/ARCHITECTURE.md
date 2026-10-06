@@ -1,6 +1,6 @@
 # Architecture
 
-CausalCode follows one governing rule: deterministic repository facts come first; AI explains those facts later.
+Code Vault follows one governing rule: deterministic repository facts come first; AI explains those facts later.
 
 ## End-to-End Flow
 
@@ -75,7 +75,7 @@ The fallback is assembled only from locally computed repository facts. It contai
 - Static dependency analysis is heuristic and cannot prove runtime-only usage.
 # Architecture
 
-CausalCode is designed around a simple rule: repository facts come first, AI interpretation comes later.
+Code Vault is designed around a simple rule: repository facts come first, AI interpretation comes later.
 
 ## System overview
 

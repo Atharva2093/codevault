@@ -50,17 +50,17 @@ class GitRepository:
 
     @staticmethod
     def clone(url: str, target: Path, max_commits: int) -> "GitRepository":
-        """Clone a public repo with --depth=1, then fetch full history up to max_commits."""
+        """Clone a public repo with only the requested history depth."""
         target.parent.mkdir(parents=True, exist_ok=True)
 
-        # 1. Shallow clone (fast, no history)
-        # We run this in target's parent because clone creates the target directory
-        _run_git(["clone", "--depth=1", "--single-branch", "--filter=blob:none", "--no-tags", url, str(target)], cwd=target.parent)
+        # We run this in target's parent because clone creates the target directory.
+        depth = max(1, min(max_commits, 200))
+        _run_git([
+            "clone", f"--depth={depth}", "--single-branch", "--filter=blob:none",
+            "--no-tags", url, str(target),
+        ], cwd=target.parent)
 
-        # 2. Unshallow to get history.
-        _run_git(["fetch", "--unshallow"], cwd=target)
-
-        # 3. Verify we have a usable history
+        # Verify we have a usable history.
         try:
             _run_git(["rev-parse", "HEAD"], cwd=target)
         except GitError as e:

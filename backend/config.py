@@ -1,6 +1,6 @@
 """Configuration via environment variables (copy .env.example to .env first).
 
-ceiling: analysis and clone paths under CAUSALCODE_DATA_DIR are never cleaned
+ceiling: analysis and clone paths under CODEVAULT_DATA_DIR are never cleaned
 up automatically by the app; delete them manually when you are done.
 """
 import os
@@ -13,8 +13,8 @@ ENV = os.getenv("APP_ENV", "development")
 DEBUG = os.getenv("APP_DEBUG", "false").lower() == "true"
 
 # Storage root (SQLite + per-session git clones)
-DATA_DIR = Path(os.getenv("CAUSALCODE_DATA_DIR", BASE_DIR / "data"))
-DB_PATH = DATA_DIR / "causalcode.db"
+DATA_DIR = Path(os.getenv("CODEVAULT_DATA_DIR", BASE_DIR / "data"))
+DB_PATH = DATA_DIR / "codevault.db"
 
 # Analysis limits. 200 is a hard ceiling (Phase 1 constraint), not a feature.
 MAX_COMMITS_HARD = 200

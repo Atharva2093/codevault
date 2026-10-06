@@ -7,7 +7,7 @@ This project is currently a local Python backend with a SQLite data store and Gi
 Use the repo directly for local development and testing:
 
 ```bash
-cd /path/to/CausalCode
+cd /path/to/CodeVault
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
